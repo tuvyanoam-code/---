@@ -88,6 +88,11 @@ class GeofenceManager(
 ) {
     private val client = LocationServices.getGeofencingClient(context)
 
+    /** Whether geofences were registered successfully in this process. */
+    @Volatile
+    var synced = false
+        private set
+
     private val pendingIntent: PendingIntent by lazy {
         // Mutable: Play services adds the transition details to the intent.
         PendingIntent.getBroadcast(
@@ -109,7 +114,10 @@ class GeofenceManager(
         } catch (e: Exception) {
             // Nothing registered yet.
         }
-        if (all.isEmpty()) return true
+        if (all.isEmpty()) {
+            synced = true
+            return true
+        }
         val geofences = all.take(MAX_GEOFENCES).map { place ->
             Geofence.Builder()
                 .setRequestId(place.id)
@@ -125,6 +133,7 @@ class GeofenceManager(
             .build()
         return try {
             client.addGeofences(request, pendingIntent).await()
+            synced = true
             refreshPresence()
             true
         } catch (e: Exception) {

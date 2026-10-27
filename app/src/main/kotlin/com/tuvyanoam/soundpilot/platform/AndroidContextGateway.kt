@@ -10,7 +10,6 @@ import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Build
 import android.provider.CalendarContract
-import androidx.core.content.ContextCompat
 import com.tuvyanoam.soundpilot.core.engine.RuleEngine
 import com.tuvyanoam.soundpilot.core.model.CalendarEventInfo
 import com.tuvyanoam.soundpilot.core.model.ContextSnapshot
@@ -174,13 +173,14 @@ class AndroidContextGateway(
 
     fun headphones(): Boolean = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type in HEADPHONE_TYPES }
 
+    /** Plugged in, read from the sticky battery broadcast (no receiver is actually registered). */
     fun charging(): Boolean {
-        val battery = ContextCompat.registerReceiver(
-            context,
-            null,
-            IntentFilter(Intent.ACTION_BATTERY_CHANGED),
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        ) ?: return false
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val battery = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(null, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(null, filter)
+        } ?: return false
         return battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
     }
 

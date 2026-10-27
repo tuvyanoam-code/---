@@ -72,7 +72,8 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             // While the app is visible Android lets the service add the microphone; also catch up on location.
             if (app.storage.settings.get().automationEnabled) AutomationService.start(this@MainActivity, AutomationService.ACTION_REFRESH)
-            if (!app.geofences.sync()) app.geofences.refreshPresence()
+            // Register geofences once per process (places changes re-sync on their own), then check where we are.
+            if (app.geofences.synced || !app.geofences.sync()) app.geofences.refreshPresence()
             app.coordinator.evaluate("app_opened")
         }
     }

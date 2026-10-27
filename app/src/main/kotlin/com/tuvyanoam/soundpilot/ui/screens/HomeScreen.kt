@@ -45,7 +45,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -93,6 +92,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
+import kotlin.math.roundToInt
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -334,26 +334,23 @@ fun HomeScreen(openSettings: () -> Unit, openTab: (String) -> Unit, vm: HomeView
 
 @Composable
 private fun VolumeSlider(icon: ImageVector, label: String, percent: Int, levels: Int, onChange: (Int) -> Unit) {
-    var dragging by remember { mutableStateOf(false) }
-    var value by remember { mutableFloatStateOf(percent / 100f) }
-    if (!dragging) value = percent / 100f
+    // While dragging, show the finger's position; otherwise the phone's actual volume.
+    var dragValue by remember { mutableStateOf<Float?>(null) }
+    val shown = dragValue ?: (percent / 100f)
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Icon(icon, label, Modifier.size(20.dp))
         Spacer(Modifier.width(8.dp))
         Text(label, modifier = Modifier.width(88.dp), style = MaterialTheme.typography.bodyMedium)
         Slider(
-            value = value,
-            onValueChange = {
-                dragging = true
-                value = it
-            },
+            value = shown,
+            onValueChange = { dragValue = it },
             onValueChangeFinished = {
-                dragging = false
-                onChange((value * 100).toInt())
+                dragValue?.let { onChange((it * 100).roundToInt()) }
+                dragValue = null
             },
             steps = (levels - 1).coerceIn(0, 100),
             modifier = Modifier.weight(1f),
         )
-        Text("${(value * 100).toInt()}%", modifier = Modifier.width(44.dp), style = MaterialTheme.typography.bodySmall)
+        Text("${(shown * 100).roundToInt()}%", modifier = Modifier.width(44.dp), style = MaterialTheme.typography.bodySmall)
     }
 }
