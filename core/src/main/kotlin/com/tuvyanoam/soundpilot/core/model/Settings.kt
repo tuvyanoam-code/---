@@ -1,5 +1,6 @@
 package com.tuvyanoam.soundpilot.core.model
 
+import com.tuvyanoam.soundpilot.core.jewish.JewishCalendarSettings
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -40,6 +41,7 @@ data class AppSettings(
     val automationEnabled: Boolean = true,
     val adaptive: AdaptiveVolumeConfig = AdaptiveVolumeConfig(),
     val ai: AiSettings = AiSettings(),
+    val jewish: JewishCalendarSettings = JewishCalendarSettings(),
     /** Record manual changes so the app can learn routines. */
     val learningEnabled: Boolean = true,
     val onboardingDone: Boolean = false,

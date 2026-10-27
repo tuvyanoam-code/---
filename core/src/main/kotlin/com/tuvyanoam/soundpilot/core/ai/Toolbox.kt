@@ -1,6 +1,9 @@
 package com.tuvyanoam.soundpilot.core.ai
 
 import com.tuvyanoam.soundpilot.core.automation.AutomationCoordinator
+import com.tuvyanoam.soundpilot.core.jewish.Cities
+import com.tuvyanoam.soundpilot.core.jewish.HavdalahMode
+import com.tuvyanoam.soundpilot.core.jewish.JewishCalendarService
 import com.tuvyanoam.soundpilot.core.engine.RuleEngine
 import com.tuvyanoam.soundpilot.core.model.AudioCommand
 import com.tuvyanoam.soundpilot.core.model.AudioStream
@@ -70,14 +73,14 @@ class AutomationToolbox(
 ) {
     fun toolsFor(mode: AgentMode, collector: RunCollector): List<AgentTool> = when (mode) {
         AgentMode.CHAT -> listOf(
-            phoneStatus, listRules, listPlaces, activity,
+            phoneStatus, listRules, listPlaces, activity, jewishCalendar,
             setRinger, setVolume, setDnd, cancelTemporary,
             createRule, updateRule, deleteRule, setRuleEnabled,
-            savePlaceHere, createPlace, configureAdaptive, remember, forget,
+            savePlaceHere, createPlace, configureAdaptive, configureJewishCalendar, remember, forget,
         )
-        AgentMode.RULE_DRAFT -> listOf(phoneStatus, listRules, listPlaces, draftRule(collector))
-        AgentMode.ANALYZE -> listOf(phoneStatus, listRules, listPlaces, activity, suggestRule(collector), remember)
-        AgentMode.SMART -> listOf(phoneStatus, listRules, listPlaces, setRinger, setVolume, setDnd)
+        AgentMode.RULE_DRAFT -> listOf(phoneStatus, listRules, listPlaces, jewishCalendar, draftRule(collector))
+        AgentMode.ANALYZE -> listOf(phoneStatus, listRules, listPlaces, activity, jewishCalendar, suggestRule(collector), remember)
+        AgentMode.SMART -> listOf(phoneStatus, listRules, listPlaces, jewishCalendar, setRinger, setVolume, setDnd)
     }
 
     private fun tool(
@@ -150,6 +153,87 @@ class AutomationToolbox(
     ) { input ->
         val days = ToolJson.decodeFromJsonElement<ActivityInput>(input).days.coerceIn(1, 30)
         ok(activityText(days))
+    }
+
+    private val jewishCalendar = tool(
+        "get_jewish_calendar",
+        "Hebrew calendar: today's Hebrew date, whether it is Shabbat or Yom Tov now, and the next Shabbatot and holidays " +
+            "with candle lighting and nightfall times for the configured city and customs.",
+        mapOf("days" to Schema.integer("How many days ahead to list (1-60). Default 21.", 1, 60)),
+    ) { input ->
+        val days = ToolJson.decodeFromJsonElement<DaysInput>(input).days.coerceIn(1, 60)
+        val settings = storage.settings.get().jewish
+        val overview = JewishCalendarService.overview(clock.now(), settings, days)
+        val json = buildJsonObject {
+            put("hebrew_date", overview.hebrewDate)
+            putJsonObject("location") {
+                put("name", settings.locationName)
+                put("city_id", settings.cityId)
+                put("in_israel", settings.inIsrael)
+                put("candle_lighting_minutes_before_sunset", settings.candleLightingMinutes)
+                put("havdalah", if (settings.havdalahMode == HavdalahMode.NIGHTFALL) "nightfall (8.5°)" else "${settings.havdalahMinutes} min after sunset")
+            }
+            overview.current?.let { span ->
+                putJsonObject("now") {
+                    put("name", span.hebrewName)
+                    put("ends", formatTime(span.endMillis))
+                }
+            }
+            putJsonArray("upcoming") {
+                overview.upcoming.forEach { span ->
+                    addJsonObject {
+                        put("name", span.hebrewName)
+                        put("english_name", span.englishName)
+                        put("starts", formatTime(span.startMillis))
+                        put("ends", formatTime(span.endMillis))
+                    }
+                }
+            }
+        }
+        ok(json.toString())
+    }
+
+    private val configureJewishCalendar = tool(
+        "configure_jewish_calendar",
+        "Set where Shabbat and holiday times are computed and by which customs. Give a city id, or coordinates for " +
+            "anywhere else. Omit fields to keep them.",
+        mapOf(
+            "city_id" to Schema.string("A city in Israel", Cities.ISRAEL.map { it.id }),
+            "location_name" to Schema.string("Name for custom coordinates"),
+            "latitude" to Schema.number("Latitude for a place that is not in the list"),
+            "longitude" to Schema.number("Longitude for a place that is not in the list"),
+            "time_zone" to Schema.string("IANA time zone for custom coordinates, e.g. Europe/London"),
+            "in_israel" to Schema.boolean("False outside Israel (two-day Yom Tov)"),
+            "candle_lighting_minutes" to Schema.integer("Candle lighting, minutes before sunset", 0, 90),
+            "havdalah" to Schema.string("How Shabbat ends", HavdalahMode.entries.map { it.name }),
+            "havdalah_minutes" to Schema.integer("With MINUTES_AFTER_SUNSET: minutes after sunset (e.g. 72 for Rabbeinu Tam)", 10, 120),
+        ),
+    ) { input ->
+        val args = ToolJson.decodeFromJsonElement<JewishConfigInput>(input)
+        val updated = storage.settings.update { s ->
+            var j = s.jewish
+            args.cityId?.let { id -> j = (Cities.byId(id) ?: throw IllegalArgumentException("unknown city_id $id")).toSettings(j) }
+            if (args.latitude != null && args.longitude != null) {
+                require(args.latitude in -90.0..90.0 && args.longitude in -180.0..180.0) { "coordinates out of range" }
+                j = j.copy(
+                    cityId = Cities.CUSTOM,
+                    locationName = args.locationName ?: j.locationName,
+                    latitude = args.latitude,
+                    longitude = args.longitude,
+                    timeZone = args.timeZone ?: clock.zone().id,
+                    inIsrael = Cities.looksLikeIsrael(args.latitude, args.longitude),
+                )
+            }
+            args.inIsrael?.let { j = j.copy(inIsrael = it) }
+            args.candleLightingMinutes?.let { j = j.copy(candleLightingMinutes = it.coerceIn(0, 90)) }
+            args.havdalah?.let { value ->
+                j = j.copy(havdalahMode = HavdalahMode.entries.firstOrNull { it.name.equals(value, true) } ?: throw IllegalArgumentException("unknown havdalah $value"))
+            }
+            args.havdalahMinutes?.let { j = j.copy(havdalahMinutes = it.coerceIn(10, 120)) }
+            s.copy(jewish = j)
+        }
+        coordinator.evaluate("jewish_calendar_configured")
+        ok("Hebrew calendar settings: ${updated.jewish}", phrases.toolJewishCalendar(updated.jewish.locationName))
     }
 
     // ---- Device ----
@@ -442,6 +526,11 @@ class AutomationToolbox(
             putJsonObject("volumes_percent") { audio.volumes.forEach { (k, v) -> put(k.name, v) } }
             put("do_not_disturb", audio.dnd.name)
             put("automation_enabled", settings.automationEnabled)
+            runCatching { JewishCalendarService.overview(clock.now(), settings.jewish, days = 8) }.getOrNull()?.let { calendar ->
+                put("hebrew_date", calendar.hebrewDate)
+                calendar.current?.let { put("holy_time_now", "${it.hebrewName} until ${formatTime(it.endMillis)}") }
+                calendar.upcoming.firstOrNull()?.let { put("next_holy_time", "${it.hebrewName}: ${formatTime(it.startMillis)} - ${formatTime(it.endMillis)}") }
+            }
             if (context != null) {
                 putJsonObject("context") {
                     putJsonArray("in_places") { context.placeIds.forEach { id -> add(places[id] ?: id) } }
@@ -517,6 +606,20 @@ class AutomationToolbox(
 }
 
 @Serializable private data class ActivityInput(val days: Int = 14)
+@Serializable private data class DaysInput(val days: Int = 21)
+
+@Serializable
+private data class JewishConfigInput(
+    @SerialName("city_id") val cityId: String? = null,
+    @SerialName("location_name") val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    @SerialName("time_zone") val timeZone: String? = null,
+    @SerialName("in_israel") val inIsrael: Boolean? = null,
+    @SerialName("candle_lighting_minutes") val candleLightingMinutes: Int? = null,
+    val havdalah: String? = null,
+    @SerialName("havdalah_minutes") val havdalahMinutes: Int? = null,
+)
 @Serializable private data class RingerInput(val mode: String, val minutes: Int? = null)
 @Serializable private data class VolumeInput(val stream: String, val percent: Int, val minutes: Int? = null)
 @Serializable private data class DndInput(val mode: String, val minutes: Int? = null)

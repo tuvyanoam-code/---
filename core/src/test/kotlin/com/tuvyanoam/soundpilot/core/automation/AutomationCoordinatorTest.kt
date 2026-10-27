@@ -115,6 +115,32 @@ class AutomationCoordinatorTest {
     }
 
     @Test
+    fun `shabbat rule follows the hebrew calendar`() = runTest {
+        // Clock and zone in UTC; the calendar uses Jerusalem. Friday 23 Oct 2026, 12:00 UTC (15:00 in Jerusalem).
+        clock.dateTime = LocalDateTime.of(2026, 10, 23, 12, 0)
+        storage.rules.upsert(
+            Rule("shabbat", "Shabbat", conditions = listOf(Condition.HolyTime(minutesBefore = 10)), actions = listOf(Action.SetRinger(RingerMode.SILENT))),
+        )
+        val coordinator = coordinator(backgroundScope)
+        coordinator.evaluate("test")
+        assertEquals(RingerMode.NORMAL, audio.state.ringerMode)
+        val wake = scheduler.scheduled.getValue(AutomationCoordinator.TAG_EVALUATE)
+        // Candle lighting about 17:18 Jerusalem (14:18 UTC), minus 10 minutes.
+        val wakeTime = java.time.Instant.ofEpochMilli(wake).atZone(java.time.ZoneOffset.UTC).toLocalTime()
+        assertTrue(wakeTime.hour == 14 && wakeTime.minute in 0..15, "wake at $wakeTime")
+
+        clock.dateTime = LocalDateTime.of(2026, 10, 23, 15, 0)
+        coordinator.evaluate("alarm")
+        assertEquals(RingerMode.SILENT, audio.state.ringerMode)
+        assertTrue(coordinator.lastReport.value!!.context.shabbatNow)
+
+        // Saturday night after nightfall the previous setting comes back.
+        clock.dateTime = LocalDateTime.of(2026, 10, 24, 17, 0)
+        coordinator.evaluate("alarm")
+        assertEquals(RingerMode.NORMAL, audio.state.ringerMode)
+    }
+
+    @Test
     fun `manual changes are recorded with their context`() = runTest {
         context.placeIds = setOf("p-home")
         coordinator(backgroundScope).recordUserChange(UserEvent.Kind.RINGER, ringerMode = RingerMode.SILENT)

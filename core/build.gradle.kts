@@ -19,6 +19,8 @@ kotlin {
 
 dependencies {
     api(libs.anthropic.java)
+    // Hebrew calendar, holidays and halachic times (LGPL-2.1).
+    api(libs.kosherjava.zmanim)
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.serialization.json)
 

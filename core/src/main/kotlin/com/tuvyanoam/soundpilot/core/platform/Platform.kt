@@ -88,6 +88,7 @@ interface Phrases : LearningPhrases {
     fun toolSuggested(name: String): String
     fun toolDrafted(name: String): String
     fun toolTemporaryCancelled(): String
+    fun toolJewishCalendar(location: String): String
 }
 
 open class EnglishPhrases : Phrases {
@@ -97,6 +98,7 @@ open class EnglishPhrases : Phrases {
     override fun wifiRuleName(mode: RingerMode, ssid: String) = "${modeName(mode)} on Wi-Fi $ssid"
     override fun bluetoothRuleName(mode: RingerMode, device: String) = "${modeName(mode)} with $device"
     override fun calendarRuleName(mode: RingerMode) = "${modeName(mode)} during meetings"
+    override fun holyRuleName(mode: RingerMode) = "${modeName(mode)} on Shabbat and holidays"
     override fun timeRuleName(mode: RingerMode, days: Set<Int>, startMinute: Int, endMinute: Int) =
         "${modeName(mode)} at ${"%02d:%02d".format(startMinute / 60, startMinute % 60)}"
     override fun rationale(events: Int, days: Int, confidencePercent: Int) =
@@ -129,6 +131,7 @@ open class EnglishPhrases : Phrases {
     override fun toolSuggested(name: String) = "Suggested: $name"
     override fun toolDrafted(name: String) = "Draft: $name"
     override fun toolTemporaryCancelled() = "Temporary mode cancelled"
+    override fun toolJewishCalendar(location: String) = "Hebrew calendar: $location"
 
     companion object Default : EnglishPhrases()
 }

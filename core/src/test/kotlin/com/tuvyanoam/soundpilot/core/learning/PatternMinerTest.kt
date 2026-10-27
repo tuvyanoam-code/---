@@ -56,6 +56,18 @@ class PatternMinerTest {
     }
 
     @Test
+    fun `learns silencing before shabbat`() {
+        val events = (0L..3L).map { week ->
+            val e = event(4 + week * 7, 16, 0, RingerMode.SILENT)
+            e.copy(context = e.context.copy(minutesToHolyStart = 25))
+        }
+        val suggestion = PatternMiner().mine(events, places, now + 7L * 86_400_000, zone, EnglishPhrases)
+            .single { s -> s.rule.conditions.any { it is Condition.HolyTime } }
+        assertEquals(listOf<Condition>(Condition.HolyTime(minutesBefore = 25)), suggestion.rule.conditions)
+        assertEquals("Silent on Shabbat and holidays", suggestion.rule.name)
+    }
+
+    @Test
     fun `needs several different days`() {
         val sameDay = (0..5).map { event(0, 9, it, RingerMode.VIBRATE, setOf("p-shul")) }
         assertTrue(PatternMiner().mine(sameDay, places, now, zone, EnglishPhrases).isEmpty())

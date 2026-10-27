@@ -1,6 +1,8 @@
 package com.tuvyanoam.soundpilot.core.model
 
+import com.tuvyanoam.soundpilot.core.jewish.HolyPeriod
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class CalendarEventInfo(
@@ -23,8 +25,15 @@ data class ContextSnapshot(
     val headphones: Boolean = false,
     val noiseDb: Double? = null,
     val calendarEvents: List<CalendarEventInfo> = emptyList(),
+    /** Shabbat and Yom Tov periods around now. Recomputed on every evaluation, so not stored. */
+    @Transient val holyPeriods: List<HolyPeriod> = emptyList(),
+    val shabbatNow: Boolean = false,
+    val yomTovNow: Boolean = false,
+    /** Minutes until the next Shabbat or Yom Tov starts, when that is within a few hours. */
+    val minutesToHolyStart: Int? = null,
 ) {
     val inBusyEvent: Boolean get() = calendarEvents.any { it.busy }
+    val inHolyTime: Boolean get() = shabbatNow || yomTovNow
 
     /** True when something a person would notice changed: place, network, devices or meetings. */
     fun differsMeaningfullyFrom(other: ContextSnapshot?): Boolean {
@@ -33,6 +42,7 @@ data class ContextSnapshot(
             wifiSsid != other.wifiSsid ||
             bluetoothDevices != other.bluetoothDevices ||
             headphones != other.headphones ||
-            inBusyEvent != other.inBusyEvent
+            inBusyEvent != other.inBusyEvent ||
+            inHolyTime != other.inHolyTime
     }
 }

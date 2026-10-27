@@ -34,8 +34,9 @@ val ruleTemplates: List<RuleTemplate> = listOf(
     RuleTemplate(R.string.tpl_shabbat, Icons.Filled.Star) { context ->
         RuleSpec(
             name = context.getString(R.string.tpl_shabbat),
-            conditions = ConditionSpec(days = listOf("FRI"), startTime = "16:00", endTime = "20:00", endDaysLater = 1),
+            conditions = ConditionSpec(holyTime = "SHABBAT_AND_YOM_TOV", holyMinutesBefore = 10),
             actions = ActionSpec(ringerMode = "SILENT", mediaVolume = 0),
+            priority = 10,
         )
     },
     RuleTemplate(R.string.tpl_work, Icons.Filled.Work) { context ->

@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -7,9 +8,24 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Release signing comes from the environment (e.g. CI secrets). Without it, release builds use the debug key so
-// the APK can still be installed directly on a phone.
-val releaseKeystore: String? = System.getenv("SOUNDPILOT_KEYSTORE")
+// The permanent release key comes from keystore.properties (local builds, never committed) or from environment
+// variables (CI, filled from GitHub Secrets). Without either, release builds fall back to the debug key.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun signingValue(property: String, env: String): String? =
+    keystoreProperties.getProperty(property)?.takeIf { it.isNotBlank() } ?: System.getenv(env)?.takeIf { it.isNotBlank() }
+
+val releaseStoreFile: String? = signingValue("storeFile", "SOUNDPILOT_KEYSTORE")
+val releaseStorePassword: String? = signingValue("storePassword", "SOUNDPILOT_KEYSTORE_PASSWORD")
+val hasReleaseKey = releaseStoreFile != null && releaseStorePassword != null
+
+// The version code is the number of commits, so every newer build (CI or local) installs over the previous one.
+val buildNumber: Int = runCatching {
+    providers.exec { commandLine("git", "rev-list", "--count", "HEAD") }.standardOutput.asText.get().trim().toInt()
+}.getOrDefault(1)
 
 android {
     namespace = "com.tuvyanoam.soundpilot"
@@ -19,17 +35,17 @@ android {
         applicationId = "com.tuvyanoam.soundpilot"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = buildNumber
+        versionName = "1.1.$buildNumber"
     }
 
     signingConfigs {
-        if (releaseKeystore != null) {
+        if (hasReleaseKey) {
             create("release") {
-                storeFile = file(releaseKeystore)
-                storePassword = System.getenv("SOUNDPILOT_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("SOUNDPILOT_KEY_ALIAS")
-                keyPassword = System.getenv("SOUNDPILOT_KEY_PASSWORD")
+                storeFile = rootProject.file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = signingValue("keyAlias", "SOUNDPILOT_KEY_ALIAS") ?: "soundpilot"
+                keyPassword = signingValue("keyPassword", "SOUNDPILOT_KEY_PASSWORD") ?: releaseStorePassword
             }
         }
     }
@@ -39,7 +55,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (releaseKeystore != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "debug")
         }
     }
 

@@ -33,6 +33,9 @@ data class ConditionSpec(
     @SerialName("start_time") val startTime: String? = null,
     @SerialName("end_time") val endTime: String? = null,
     @SerialName("end_days_later") val endDaysLater: Int? = null,
+    @SerialName("holy_time") val holyTime: String? = null,
+    @SerialName("holy_minutes_before") val holyMinutesBefore: Int? = null,
+    @SerialName("holy_minutes_after") val holyMinutesAfter: Int? = null,
     @SerialName("in_calendar_event") val inCalendarEvent: Boolean? = null,
     @SerialName("calendar_keyword") val calendarKeyword: String? = null,
     @SerialName("wifi_ssid") val wifiSsid: String? = null,
@@ -57,6 +60,13 @@ data class ActionSpec(
 
 object RuleSpecs {
     val DAY_CODES = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+
+    /** holy_time value -> (Shabbat, Yom Tov). */
+    val HOLY_KINDS: Map<String, Pair<Boolean, Boolean>> = linkedMapOf(
+        "SHABBAT_AND_YOM_TOV" to (true to true),
+        "SHABBAT" to (true to false),
+        "YOM_TOV" to (false to true),
+    )
 
     fun dayCode(isoDay: Int): String = DAY_CODES[(isoDay - 1).coerceIn(0, 6)]
 
@@ -91,6 +101,16 @@ object RuleSpecs {
             }
         }
 
+        c.holyTime?.let { value ->
+            val kind = HOLY_KINDS[value.trim().uppercase()]
+            val before = c.holyMinutesBefore ?: 0
+            val after = c.holyMinutesAfter ?: 0
+            when {
+                kind == null -> problems += "holy_time must be one of ${HOLY_KINDS.keys.joinToString()}"
+                before !in 0..180 || after !in 0..180 -> problems += "holy_minutes_before/after must be 0-180"
+                else -> conditions += Condition.HolyTime(kind.first, kind.second, before, after)
+            }
+        }
         if (c.inCalendarEvent == true || !c.calendarKeyword.isNullOrBlank()) {
             conditions += Condition.InCalendarEvent(c.calendarKeyword?.trim()?.ifEmpty { null }, busyOnly = true)
         }
@@ -163,6 +183,11 @@ object RuleSpecs {
                         endDaysLater = condition.endDayOffset.takeIf { it > 0 },
                     )
                 }
+                is Condition.HolyTime -> c.copy(
+                    holyTime = HOLY_KINDS.entries.firstOrNull { it.value == (condition.shabbat to condition.yomTov) }?.key,
+                    holyMinutesBefore = condition.minutesBefore.takeIf { it > 0 },
+                    holyMinutesAfter = condition.minutesAfter.takeIf { it > 0 },
+                )
                 is Condition.InCalendarEvent -> c.copy(inCalendarEvent = true, calendarKeyword = condition.keyword)
                 is Condition.WifiConnected -> c.copy(wifiSsid = condition.ssid)
                 is Condition.BluetoothConnected -> c.copy(bluetoothDevice = condition.deviceName)
@@ -208,7 +233,14 @@ object RuleSpecs {
                                 "Shabbat: days [FRI], start_time 16:00, end_time 20:00, end_days_later 1. Omit otherwise.",
                             0, 6,
                         ),
-                        "in_calendar_event" to Schema.boolean("True to apply during busy calendar events."),
+                        "holy_time" to Schema.string(
+                            "Hebrew calendar: active on Shabbat and/or Yom Tov (days when work is forbidden), from candle " +
+                                "lighting to nightfall at the user's configured city. Prefer this over fixed times for Shabbat and holidays.",
+                            HOLY_KINDS.keys.toList(),
+                        ),
+                        "holy_minutes_before" to Schema.integer("Start this many minutes before candle lighting (0-180).", 0, 180),
+                        "holy_minutes_after" to Schema.integer("End this many minutes after nightfall (0-180).", 0, 180),
+                        "in_calendar_event" to Schema.boolean("True to apply during busy events in the phone's calendar app."),
                         "calendar_keyword" to Schema.string("Only events whose title contains this text."),
                         "wifi_ssid" to Schema.string("Name of a Wi-Fi network the phone is connected to."),
                         "bluetooth_device" to Schema.string("Name of a connected Bluetooth device, e.g. the car."),

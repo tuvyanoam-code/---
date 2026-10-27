@@ -40,6 +40,20 @@ class RuleSpecTest {
     }
 
     @Test
+    fun `holy_time round trips`() {
+        val spec = RuleSpec(
+            name = "שבת וחגים",
+            conditions = ConditionSpec(holyTime = "SHABBAT_AND_YOM_TOV", holyMinutesBefore = 15),
+            actions = ActionSpec(ringerMode = "SILENT"),
+        )
+        val rule = RuleSpecs.toRule(spec, "r", RuleOrigin.AI, emptySet()).getOrThrow()
+        assertEquals(listOf<Condition>(Condition.HolyTime(true, true, 15, 0)), rule.conditions)
+        assertEquals(spec, RuleSpecs.fromRule(rule))
+        val bad = spec.copy(conditions = ConditionSpec(holyTime = "PURIM"))
+        assertTrue(RuleSpecs.toRule(bad, "r", RuleOrigin.AI, emptySet()).isFailure)
+    }
+
+    @Test
     fun `reports every problem at once`() {
         val spec = RuleSpec(
             name = "bad",

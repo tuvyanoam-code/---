@@ -150,7 +150,7 @@
 
     <!-- תבניות -->
     <string name="tpl_night">לילה שקט</string>
-    <string name="tpl_shabbat">שבת</string>
+    <string name="tpl_shabbat">שבת וחגים</string>
     <string name="tpl_work">שעות עבודה</string>
     <string name="tpl_meetings">פגישות</string>
     <string name="tpl_car">ברכב</string>
@@ -337,4 +337,37 @@
     <string name="settings_about">פרטיות ואודות</string>
     <string name="settings_privacy">הכול נשמר רק בטלפון הזה. כשמשתמשים ביכולות של Claude, הבקשה, הכללים, המקומות, המצב הנוכחי ו(בניתוח) יומן הפעילות נשלחים ל-API של Anthropic עם המפתח שלכם. שמע לעולם לא יוצא מהטלפון.</string>
     <string name="settings_version">גרסה %s</string>
+
+    <!-- Hebrew calendar -->
+    <string name="cond_holy_both">בשבתות ובחגים</string>
+    <string name="cond_holy_shabbat">בשבת</string>
+    <string name="cond_holy_yomtov">בחגים (יום טוב)</string>
+    <string name="cond_holy_margins">%1$s (%2$d דק\' לפני, %3$d דק\' אחרי)</string>
+    <string name="cond_title_holy">שבת וחגים (לוח עברי)</string>
+    <string name="holy_kind_both">שבת וחגים</string>
+    <string name="holy_kind_shabbat">שבת</string>
+    <string name="holy_kind_yomtov">חגים</string>
+    <string name="cond_holy_before">להתחיל %d דק\' לפני הדלקת נרות</string>
+    <string name="cond_holy_after">לסיים %d דק\' אחרי צאת השבת/החג</string>
+    <string name="cond_holy_hint">הזמנים לפי העיר שבהגדרות ← לוח שנה עברי, בכל שבוע ובכל חג, כולל יום טוב שני בחו״ל.</string>
+    <string name="learn_rule_holy">%s בשבתות ובחגים</string>
+    <string name="tool_jewish_calendar">לוח עברי: %s</string>
+    <string name="home_jewish">לוח שנה עברי</string>
+    <string name="home_holy_now">%1$s · עד %2$s</string>
+    <string name="home_holy_next">הבא: %1$s</string>
+    <string name="home_holy_times">כניסה %1$s · יציאה %2$s</string>
+    <string name="home_holy_location">%1$s · הדלקת נרות %2$d דק\' לפני השקיעה</string>
+    <string name="settings_jewish">לוח שנה עברי</string>
+    <string name="jewish_city">עיר</string>
+    <string name="jewish_my_location">המיקום שלי</string>
+    <string name="jewish_use_location">להשתמש במיקום הנוכחי</string>
+    <string name="jewish_in_israel">בארץ ישראל</string>
+    <string name="jewish_in_israel_desc">לכבות בחו״ל — יום טוב שני של גלויות</string>
+    <string name="jewish_candles">הדלקת נרות: %d דק\' לפני השקיעה</string>
+    <string name="jewish_havdalah">צאת שבת וחג</string>
+    <string name="jewish_havdalah_nightfall">צאת הכוכבים (8.5°)</string>
+    <string name="jewish_havdalah_minutes_mode">דקות אחרי השקיעה</string>
+    <string name="jewish_havdalah_minutes">%d דק\' אחרי השקיעה</string>
+    <string name="jewish_preview">%1$s · כניסה %2$s · יציאה %3$s</string>
+    <string name="jewish_custom_note">התאימו את זמן הדלקת הנרות למנהג המקום (ירושלים 40, חיפה 30, ברוב המקומות 20).</string>
 </resources>

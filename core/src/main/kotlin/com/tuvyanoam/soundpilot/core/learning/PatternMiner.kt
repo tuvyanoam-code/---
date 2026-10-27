@@ -21,6 +21,7 @@ interface LearningPhrases {
     fun wifiRuleName(mode: RingerMode, ssid: String): String
     fun bluetoothRuleName(mode: RingerMode, device: String): String
     fun calendarRuleName(mode: RingerMode): String
+    fun holyRuleName(mode: RingerMode): String
     fun timeRuleName(mode: RingerMode, days: Set<Int>, startMinute: Int, endMinute: Int): String
     fun rationale(events: Int, days: Int, confidencePercent: Int): String
 }
@@ -65,6 +66,7 @@ class PatternMiner(
         found += contextual(ringer, zone, now, { ctx -> if (ctx.inBusyEvent) listOf(BUSY) else emptyList() }) { mode, _ ->
             Condition.InCalendarEvent(keyword = null, busyOnly = true) to phrases.calendarRuleName(mode)
         }
+        found += holyPatterns(ringer, zone, now, phrases)
         found += timePatterns(ringer, zone, now, phrases)
 
         return found
@@ -108,6 +110,29 @@ class PatternMiner(
                     Scored(suggestion(name, listOf(condition), mode, restore = true, confidence, matching.size, now), days)
                 }
         }
+    }
+
+    /**
+     * Changes made on Shabbat or Yom Tov, or in the hours before it starts (when observant users actually touch
+     * the phone). The rule starts as long before candle lighting as the user usually does it.
+     */
+    private fun holyPatterns(events: List<UserEvent>, zone: ZoneId, now: Long, phrases: LearningPhrases): List<Scored> {
+        val near = events.filter { e ->
+            val lead = e.context.minutesToHolyStart
+            e.context.inHolyTime || (lead != null && lead <= HOLY_LEAD_MINUTES)
+        }
+        if (near.isEmpty()) return emptyList()
+        return near.groupBy { it.ringerMode!! }
+            .filterKeys { it != RingerMode.NORMAL }
+            .mapNotNull { (mode, matching) ->
+                val days = distinctDays(matching, zone)
+                val confidence = matching.size.toDouble() / near.size
+                if (days < minDistinctDays || confidence < minConfidence) return@mapNotNull null
+                val leads = matching.mapNotNull { it.context.minutesToHolyStart }.sorted()
+                val before = if (leads.isEmpty()) 0 else roundUp5(leads[leads.size / 2]).coerceAtMost(HOLY_LEAD_MINUTES)
+                val condition = Condition.HolyTime(minutesBefore = before)
+                Scored(suggestion(phrases.holyRuleName(mode), listOf(condition), mode, restore = true, confidence, matching.size, now), days)
+            }
     }
 
     private fun timePatterns(events: List<UserEvent>, zone: ZoneId, now: Long, phrases: LearningPhrases): List<Scored> {
@@ -213,6 +238,7 @@ class PatternMiner(
         private const val MINUTES_PER_DAY = 24 * 60
         private const val DAY_MILLIS = 24L * 60 * 60 * 1000
         private const val MAX_WINDOW_MILLIS = 16L * 60 * 60 * 1000
+        private const val HOLY_LEAD_MINUTES = 120
 
         /** Median that respects the clock wrapping at midnight (e.g. 23:50 and 00:10 -> 00:00). */
         internal fun median(minutes: List<Int>): Int {

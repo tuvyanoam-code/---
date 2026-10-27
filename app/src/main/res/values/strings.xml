@@ -150,7 +150,7 @@
 
     <!-- Templates -->
     <string name="tpl_night">Quiet night</string>
-    <string name="tpl_shabbat">Shabbat</string>
+    <string name="tpl_shabbat">Shabbat &amp; holidays</string>
     <string name="tpl_work">Work hours</string>
     <string name="tpl_meetings">Meetings</string>
     <string name="tpl_car">In the car</string>
@@ -335,4 +335,37 @@
     <string name="settings_about">Privacy and about</string>
     <string name="settings_privacy">Everything is stored only on this phone. When you use Claude features, the request, your rules, places, current status and (for analysis) the activity log are sent to the Anthropic API with your own key. Audio never leaves the phone.</string>
     <string name="settings_version">Version %s</string>
+
+    <!-- Hebrew calendar -->
+    <string name="cond_holy_both">On Shabbat and holidays</string>
+    <string name="cond_holy_shabbat">On Shabbat</string>
+    <string name="cond_holy_yomtov">On holidays (Yom Tov)</string>
+    <string name="cond_holy_margins">%1$s (%2$d min before, %3$d min after)</string>
+    <string name="cond_title_holy">Shabbat and holidays (Hebrew calendar)</string>
+    <string name="holy_kind_both">Shabbat + holidays</string>
+    <string name="holy_kind_shabbat">Shabbat</string>
+    <string name="holy_kind_yomtov">Holidays</string>
+    <string name="cond_holy_before">Start %d min before candle lighting</string>
+    <string name="cond_holy_after">End %d min after Shabbat/holiday ends</string>
+    <string name="cond_holy_hint">Times follow the city in Settings → Hebrew calendar, every week and for every holiday, including two-day holidays abroad.</string>
+    <string name="learn_rule_holy">%s on Shabbat and holidays</string>
+    <string name="tool_jewish_calendar">Hebrew calendar: %s</string>
+    <string name="home_jewish">Hebrew calendar</string>
+    <string name="home_holy_now">%1$s · until %2$s</string>
+    <string name="home_holy_next">Next: %1$s</string>
+    <string name="home_holy_times">Starts %1$s · ends %2$s</string>
+    <string name="home_holy_location">%1$s · candles %2$d min before sunset</string>
+    <string name="settings_jewish">Hebrew calendar</string>
+    <string name="jewish_city">City</string>
+    <string name="jewish_my_location">My location</string>
+    <string name="jewish_use_location">Use my current location</string>
+    <string name="jewish_in_israel">In Israel</string>
+    <string name="jewish_in_israel_desc">Turn off abroad for two-day holidays</string>
+    <string name="jewish_candles">Candle lighting: %d min before sunset</string>
+    <string name="jewish_havdalah">End of Shabbat and holidays</string>
+    <string name="jewish_havdalah_nightfall">Nightfall (8.5°)</string>
+    <string name="jewish_havdalah_minutes_mode">Minutes after sunset</string>
+    <string name="jewish_havdalah_minutes">%d min after sunset</string>
+    <string name="jewish_preview">%1$s · starts %2$s · ends %3$s</string>
+    <string name="jewish_custom_note">Adjust candle lighting to your community\'s custom (Jerusalem 40, Haifa 30, most places 20).</string>
 </resources>

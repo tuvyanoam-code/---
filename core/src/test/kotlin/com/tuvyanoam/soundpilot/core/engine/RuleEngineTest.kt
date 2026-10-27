@@ -119,6 +119,18 @@ class RuleEngineTest {
     }
 
     @Test
+    fun `holy time matches by kind and margins`() {
+        val period = com.tuvyanoam.soundpilot.core.jewish.HolyPeriod(1_000_000, 2_000_000, shabbat = true, yomTov = false, "שבת", "Shabbat")
+        val at = { millis: Long -> ctx().copy(epochMillis = millis, holyPeriods = listOf(period)) }
+        val shabbat = Condition.HolyTime(shabbat = true, yomTov = false, minutesBefore = 5)
+        val holidaysOnly = Condition.HolyTime(shabbat = false, yomTov = true)
+        assertTrue(RuleEngine.matches(shabbat, at(1_000_000 - 4 * 60_000)))
+        assertFalse(RuleEngine.matches(shabbat, at(1_000_000 - 6 * 60_000)))
+        assertFalse(RuleEngine.matches(shabbat, at(2_000_000)))
+        assertFalse(RuleEngine.matches(holidaysOnly, at(1_500_000)))
+    }
+
+    @Test
     fun `wifi names match without quotes and case`() {
         val rule = atWork.copy(conditions = listOf(Condition.WifiConnected("Office-5G")))
         assertTrue(RuleEngine.isActive(rule, ctx().copy(wifiSsid = "\"office-5g\"")))

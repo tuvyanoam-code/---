@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.GraphicEq
@@ -64,6 +65,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tuvyanoam.soundpilot.R
 import com.tuvyanoam.soundpilot.container
+import com.tuvyanoam.soundpilot.core.jewish.CalendarOverview
+import com.tuvyanoam.soundpilot.core.jewish.JewishCalendarService
 import com.tuvyanoam.soundpilot.core.model.AudioCommand
 import com.tuvyanoam.soundpilot.core.model.AudioState
 import com.tuvyanoam.soundpilot.core.model.AudioStream
@@ -81,6 +84,7 @@ import com.tuvyanoam.soundpilot.ui.components.Segmented
 import com.tuvyanoam.soundpilot.ui.components.SwitchRow
 import com.tuvyanoam.soundpilot.ui.components.rememberCapabilityRequester
 import com.tuvyanoam.soundpilot.ui.components.rememberMissingCapabilities
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +95,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import kotlin.math.roundToInt
 import java.time.format.DateTimeFormatter
@@ -111,6 +116,16 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val messages = _messages.asSharedFlow()
+
+    private val _calendar = MutableStateFlow<CalendarOverview?>(null)
+    val calendar: StateFlow<CalendarOverview?> = _calendar.asStateFlow()
+
+    suspend fun refreshCalendar() {
+        val settings = c.storage.settings.get().jewish
+        _calendar.value = withContext(Dispatchers.Default) {
+            runCatching { JewishCalendarService.overview(c.clock.now(), settings, days = 30) }.getOrNull()
+        }
+    }
 
     fun levels(stream: AudioStream): Int = c.audio.levels(stream)
 
@@ -197,6 +212,15 @@ fun HomeScreen(openSettings: () -> Unit, openTab: (String) -> Unit, vm: HomeView
         }
     }
     LaunchedEffect(Unit) { vm.messages.collect { snackbar.showSnackbar(it) } }
+    val calendar by vm.calendar.collectAsStateWithLifecycle()
+    LaunchedEffect(lifecycle, settings?.jewish) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (true) {
+                vm.refreshCalendar()
+                delay(60_000)
+            }
+        }
+    }
 
     Scaffold(
         topBar = { AppTopBar(stringResource(R.string.app_name), onSettings = openSettings) },
@@ -256,6 +280,36 @@ fun HomeScreen(openSettings: () -> Unit, openTab: (String) -> Unit, vm: HomeView
                                     },
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            calendar?.let { overview ->
+                item {
+                    SectionCard(stringResource(R.string.home_jewish), Icons.Filled.CalendarMonth) {
+                        Text(if (Labels.isHebrew()) overview.hebrewDate else overview.englishHebrewDate, style = MaterialTheme.typography.titleLarge)
+                        overview.current?.let { span ->
+                            Text(
+                                stringResource(R.string.home_holy_now, Labels.holyName(span), Labels.dayTime(span.endMillis)),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        overview.upcoming.take(2).forEach { span ->
+                            Text(stringResource(R.string.home_holy_next, Labels.holyName(span)), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                stringResource(R.string.home_holy_times, Labels.dayTime(span.startMillis), Labels.dayTime(span.endMillis)),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        settings?.jewish?.let { j ->
+                            Text(
+                                stringResource(R.string.home_holy_location, j.locationName, j.candleLightingMinutes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }

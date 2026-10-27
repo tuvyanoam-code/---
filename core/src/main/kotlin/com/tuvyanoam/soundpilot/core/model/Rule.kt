@@ -1,5 +1,6 @@
 package com.tuvyanoam.soundpilot.core.model
 
+import com.tuvyanoam.soundpilot.core.jewish.HolyPeriod
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -77,6 +78,24 @@ sealed interface Condition {
     @Serializable
     @SerialName("headphones")
     data class Headphones(val connected: Boolean) : Condition
+
+    /**
+     * Shabbat and/or Yom Tov by the Hebrew calendar, from candle lighting to nightfall at the configured location.
+     * The window can be widened, e.g. to silence the phone a few minutes before candle lighting.
+     */
+    @Serializable
+    @SerialName("holy")
+    data class HolyTime(
+        val shabbat: Boolean = true,
+        val yomTov: Boolean = true,
+        val minutesBefore: Int = 0,
+        val minutesAfter: Int = 0,
+    ) : Condition {
+        fun covers(period: HolyPeriod): Boolean = (shabbat && period.shabbat) || (yomTov && period.yomTov)
+
+        fun startOf(period: HolyPeriod): Long = period.startMillis - minutesBefore * 60_000L
+        fun endOf(period: HolyPeriod): Long = period.endMillis + minutesAfter * 60_000L
+    }
 
     /** Ambient noise in estimated dB SPL. Either bound may be null. */
     @Serializable

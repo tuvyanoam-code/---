@@ -61,6 +61,9 @@ object RuleEngine {
         is Condition.BluetoothConnected -> context.bluetoothDevices.any { it.equals(condition.deviceName.trim(), ignoreCase = true) }
         is Condition.Charging -> context.charging == condition.charging
         is Condition.Headphones -> context.headphones == condition.connected
+        is Condition.HolyTime -> context.holyPeriods.any { period ->
+            condition.covers(period) && context.epochMillis >= condition.startOf(period) && context.epochMillis < condition.endOf(period)
+        }
         is Condition.Noise -> context.noiseDb != null &&
             (condition.minDb == null || context.noiseDb >= condition.minDb) &&
             (condition.maxDb == null || context.noiseDb <= condition.maxDb)

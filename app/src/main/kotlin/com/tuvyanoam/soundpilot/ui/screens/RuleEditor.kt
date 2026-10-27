@@ -146,6 +146,14 @@ fun RuleEditor(vm: RulesViewModel, form: RuleForm) {
                     })
                     if (c.startTime != null) TimeEditor(c) { transform -> vm.updateConditions(transform) }
 
+                    SwitchRow(stringResource(R.string.cond_title_holy), c.holyTime != null, { on ->
+                        vm.updateConditions {
+                            if (on) it.copy(holyTime = "SHABBAT_AND_YOM_TOV")
+                            else it.copy(holyTime = null, holyMinutesBefore = null, holyMinutesAfter = null)
+                        }
+                    })
+                    if (c.holyTime != null) HolyEditor(c) { transform -> vm.updateConditions(transform) }
+
                     SwitchRow(stringResource(R.string.cond_title_calendar), c.inCalendarEvent == true || c.calendarKeyword != null, { on ->
                         vm.updateConditions { it.copy(inCalendarEvent = if (on) true else null, calendarKeyword = null) }
                     })
@@ -356,6 +364,35 @@ private fun TimeEditor(c: ConditionSpec, update: ((ConditionSpec) -> ConditionSp
         onSelect = { offset -> update { it.copy(endDaysLater = offset.takeIf { o -> o > 0 }) } },
     )
     if (start == end && (c.endDaysLater ?: 0) == 0) Text(stringResource(R.string.time_all_day_note), style = MaterialTheme.typography.bodySmall)
+}
+
+@Composable
+private fun HolyEditor(c: ConditionSpec, update: ((ConditionSpec) -> ConditionSpec) -> Unit) {
+    val kinds = RuleSpecs.HOLY_KINDS.keys.toList()
+    Segmented(
+        labels = listOf(
+            stringResource(R.string.holy_kind_both),
+            stringResource(R.string.holy_kind_shabbat),
+            stringResource(R.string.holy_kind_yomtov),
+        ),
+        selected = kinds.indexOf(c.holyTime?.uppercase()).coerceAtLeast(0),
+        onSelect = { index -> update { it.copy(holyTime = kinds[index]) } },
+    )
+    val before = c.holyMinutesBefore ?: 0
+    val after = c.holyMinutesAfter ?: 0
+    Text(stringResource(R.string.cond_holy_before, before), style = MaterialTheme.typography.bodyMedium)
+    Slider(
+        value = before.toFloat(),
+        onValueChange = { v -> update { it.copy(holyMinutesBefore = (v.toInt() / 5 * 5).takeIf { m -> m > 0 }) } },
+        valueRange = 0f..120f,
+    )
+    Text(stringResource(R.string.cond_holy_after, after), style = MaterialTheme.typography.bodyMedium)
+    Slider(
+        value = after.toFloat(),
+        onValueChange = { v -> update { it.copy(holyMinutesAfter = (v.toInt() / 5 * 5).takeIf { m -> m > 0 }) } },
+        valueRange = 0f..120f,
+    )
+    Text(stringResource(R.string.cond_holy_hint), style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable

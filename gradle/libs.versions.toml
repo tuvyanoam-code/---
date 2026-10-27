@@ -4,6 +4,7 @@ kotlin = "2.2.20"
 coroutines = "1.10.2"
 serialization = "1.9.0"
 anthropic = "3.3.0"
+zmanim = "2.5.0"
 coreKtx = "1.16.0"
 activityCompose = "1.10.1"
 lifecycle = "2.9.1"
@@ -15,6 +16,7 @@ mockwebserver = "4.12.0"
 
 [libraries]
 anthropic-java = { module = "com.anthropic:anthropic-java", version.ref = "anthropic" }
+kosherjava-zmanim = { module = "com.kosherjava:zmanim", version.ref = "zmanim" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }

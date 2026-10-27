@@ -3,6 +3,8 @@ package com.tuvyanoam.soundpilot.platform
 import android.content.Context
 import com.tuvyanoam.soundpilot.R
 import com.tuvyanoam.soundpilot.core.engine.TimeMath
+import com.tuvyanoam.soundpilot.core.jewish.City
+import com.tuvyanoam.soundpilot.core.jewish.HolySpan
 import com.tuvyanoam.soundpilot.core.model.Action
 import com.tuvyanoam.soundpilot.core.model.AudioStream
 import com.tuvyanoam.soundpilot.core.model.Condition
@@ -43,6 +45,16 @@ object Labels {
     )
 
     /** ISO days ordered the way the user's locale starts the week. */
+    fun cityName(city: City): String = if (isHebrew()) city.hebrewName else city.englishName
+
+    fun isHebrew(): Boolean = Locale.getDefault().language in setOf("iw", "he")
+
+    fun holyName(span: HolySpan): String = if (isHebrew()) span.hebrewName else span.englishName
+
+    /** e.g. "Fri 17:18" in the user's language. */
+    fun dayTime(millis: Long): String = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault())
+        .format(java.time.format.DateTimeFormatter.ofPattern("EEE HH:mm", Locale.getDefault()))
+
     fun orderedDays(): List<Int> {
         val first = WeekFields.of(Locale.getDefault()).firstDayOfWeek.value
         return (0..6).map { ((first - 1 + it) % 7) + 1 }
@@ -76,6 +88,17 @@ object Labels {
         is Condition.InCalendarEvent ->
             if (condition.keyword.isNullOrBlank()) context.getString(R.string.cond_calendar)
             else context.getString(R.string.cond_calendar_keyword, condition.keyword)
+        is Condition.HolyTime -> {
+            val base = context.getString(
+                when {
+                    condition.shabbat && condition.yomTov -> R.string.cond_holy_both
+                    condition.shabbat -> R.string.cond_holy_shabbat
+                    else -> R.string.cond_holy_yomtov
+                },
+            )
+            if (condition.minutesBefore == 0 && condition.minutesAfter == 0) base
+            else context.getString(R.string.cond_holy_margins, base, condition.minutesBefore, condition.minutesAfter)
+        }
         is Condition.WifiConnected -> context.getString(R.string.cond_wifi, condition.ssid)
         is Condition.BluetoothConnected -> context.getString(R.string.cond_bluetooth, condition.deviceName)
         is Condition.Charging -> context.getString(if (condition.charging) R.string.cond_charging else R.string.cond_on_battery)
@@ -111,6 +134,7 @@ class AndroidPhrases(private val context: Context) : Phrases {
     override fun wifiRuleName(mode: RingerMode, ssid: String) = s(R.string.learn_rule_wifi, mode(mode), ssid)
     override fun bluetoothRuleName(mode: RingerMode, device: String) = s(R.string.learn_rule_bluetooth, mode(mode), device)
     override fun calendarRuleName(mode: RingerMode) = s(R.string.learn_rule_calendar, mode(mode))
+    override fun holyRuleName(mode: RingerMode) = s(R.string.learn_rule_holy, mode(mode))
     override fun timeRuleName(mode: RingerMode, days: Set<Int>, startMinute: Int, endMinute: Int) =
         s(R.string.learn_rule_time, mode(mode), Labels.days(context, days), TimeMath.formatMinute(startMinute))
     override fun rationale(events: Int, days: Int, confidencePercent: Int) = s(R.string.learn_rationale, events, days, confidencePercent)
@@ -142,4 +166,5 @@ class AndroidPhrases(private val context: Context) : Phrases {
     override fun toolSuggested(name: String) = s(R.string.tool_suggested, name)
     override fun toolDrafted(name: String) = s(R.string.tool_drafted, name)
     override fun toolTemporaryCancelled() = s(R.string.tool_temporary_cancelled)
+    override fun toolJewishCalendar(location: String) = s(R.string.tool_jewish_calendar, location)
 }

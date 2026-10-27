@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,6 +19,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The version code is the commit count, which needs the full history.
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -27,8 +30,8 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Optional: sign release builds with your own key so updates install over each other.
-      # Without these secrets the release APK is signed with a throwaway debug key.
+      # The permanent release key lives in GitHub Secrets (see README). Without it the release APK is signed
+      # with a throwaway debug key and no GitHub release is published.
       - name: Restore release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.SOUNDPILOT_KEYSTORE_BASE64 }}
@@ -36,6 +39,9 @@ jobs:
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
             echo "SOUNDPILOT_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "SIGNED=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::SOUNDPILOT_KEYSTORE_BASE64 is not set: the APK is signed with a temporary key and no release is published."
           fi
 
       - name: Unit tests
@@ -46,8 +52,6 @@ jobs:
       - name: Build APKs
         env:
           SOUNDPILOT_KEYSTORE_PASSWORD: ${{ secrets.SOUNDPILOT_KEYSTORE_PASSWORD }}
-          SOUNDPILOT_KEY_ALIAS: ${{ secrets.SOUNDPILOT_KEY_ALIAS }}
-          SOUNDPILOT_KEY_PASSWORD: ${{ secrets.SOUNDPILOT_KEY_PASSWORD }}
         run: ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
 
       - name: Upload APKs
@@ -58,6 +62,23 @@ jobs:
             app/build/outputs/apk/release/*.apk
             app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Publish release
+        if: env.SIGNED == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="1.1.$(git rev-list --count HEAD)"
+          APK="$RUNNER_TEMP/SoundPilot-$VERSION.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" "$APK" --clobber
+          else
+            gh release create "v$VERSION" "$APK" \
+              --target "$GITHUB_SHA" \
+              --title "SoundPilot $VERSION" \
+              --notes "$(git log -1 --pretty=%B)"
+          fi
 
       - name: Upload reports
         if: failure()

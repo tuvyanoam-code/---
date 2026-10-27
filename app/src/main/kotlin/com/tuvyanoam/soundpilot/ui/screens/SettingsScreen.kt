@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Security
@@ -50,9 +51,14 @@ import com.tuvyanoam.soundpilot.BuildConfig
 import com.tuvyanoam.soundpilot.R
 import com.tuvyanoam.soundpilot.container
 import com.tuvyanoam.soundpilot.core.ai.AiFailure
+import com.tuvyanoam.soundpilot.core.jewish.Cities
+import com.tuvyanoam.soundpilot.core.jewish.HavdalahMode
+import com.tuvyanoam.soundpilot.core.jewish.JewishCalendarService
+import com.tuvyanoam.soundpilot.core.jewish.JewishCalendarSettings
 import com.tuvyanoam.soundpilot.core.model.AiSettings
 import com.tuvyanoam.soundpilot.core.model.AppSettings
 import com.tuvyanoam.soundpilot.platform.Capability
+import com.tuvyanoam.soundpilot.platform.Labels
 import com.tuvyanoam.soundpilot.platform.Permissions
 import com.tuvyanoam.soundpilot.service.AutomationService
 import com.tuvyanoam.soundpilot.ui.components.AppTopBar
@@ -62,12 +68,17 @@ import com.tuvyanoam.soundpilot.ui.components.CommitSlider
 import com.tuvyanoam.soundpilot.ui.components.ConfirmDialog
 import com.tuvyanoam.soundpilot.ui.components.Dropdown
 import com.tuvyanoam.soundpilot.ui.components.SectionCard
+import com.tuvyanoam.soundpilot.ui.components.Segmented
 import com.tuvyanoam.soundpilot.ui.components.SwitchRow
 import com.tuvyanoam.soundpilot.ui.components.rememberCapabilityRequester
 import com.tuvyanoam.soundpilot.ui.components.rememberMissingCapabilities
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.ZoneId
 
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private val c = app.container
@@ -83,6 +94,47 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var calibrating by mutableStateOf(false)
         private set
+    var locating by mutableStateOf(false)
+        private set
+    var calendarMessage by mutableStateOf<String?>(null)
+        private set
+
+    /** The next Shabbat or holiday under the current settings, so the effect of a change is visible right away. */
+    val calendarPreview = c.storage.settings.settings
+        .map { s -> runCatching { JewishCalendarService.overview(c.clock.now(), s.jewish, days = 9) }.getOrNull() }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun updateJewish(transform: (JewishCalendarSettings) -> JewishCalendarSettings) = update { it.copy(jewish = transform(it.jewish)) }
+
+    fun setCity(id: String) {
+        val city = Cities.byId(id) ?: return
+        updateJewish { city.toSettings(it) }
+    }
+
+    fun useLocationForCalendar() {
+        locating = true
+        calendarMessage = null
+        viewModelScope.launch {
+            val here = c.location.currentLocation()
+            locating = false
+            val app = getApplication<Application>()
+            if (here == null) {
+                calendarMessage = app.getString(R.string.place_no_location)
+                return@launch
+            }
+            updateJewish {
+                it.copy(
+                    cityId = Cities.CUSTOM,
+                    locationName = app.getString(R.string.jewish_my_location),
+                    latitude = here.latitude,
+                    longitude = here.longitude,
+                    timeZone = ZoneId.systemDefault().id,
+                    inIsrael = Cities.looksLikeIsrael(here.latitude, here.longitude),
+                )
+            }
+        }
+    }
 
     fun saveKey() {
         val key = keyInput.trim()
@@ -310,6 +362,67 @@ fun SettingsScreen(onBack: () -> Unit, vm: SettingsViewModel = viewModel()) {
                         noise?.let { Text(stringResource(R.string.db_value, it.db.toInt())) }
                     }
                     Text(stringResource(R.string.settings_mic_privacy), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+
+            item {
+                val j = s.jewish
+                val preview by vm.calendarPreview.collectAsStateWithLifecycle()
+                SectionCard(stringResource(R.string.settings_jewish), Icons.Filled.CalendarMonth) {
+                    Text(stringResource(R.string.jewish_city), style = MaterialTheme.typography.labelLarge)
+                    val ids = Cities.ISRAEL.map { it.id } + if (j.cityId == Cities.CUSTOM) listOf(Cities.CUSTOM) else emptyList()
+                    Dropdown(
+                        options = ids,
+                        selected = j.cityId,
+                        label = { id -> Cities.byId(id)?.let(Labels::cityName) ?: j.locationName },
+                        onSelect = vm::setCity,
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(onClick = vm::useLocationForCalendar, enabled = !vm.locating) {
+                            Text(stringResource(R.string.jewish_use_location))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        if (vm.locating) CircularProgressIndicator(Modifier.size(24.dp))
+                    }
+                    vm.calendarMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                    SwitchRow(
+                        title = stringResource(R.string.jewish_in_israel),
+                        subtitle = stringResource(R.string.jewish_in_israel_desc),
+                        checked = j.inIsrael,
+                        onChange = { on -> vm.updateJewish { it.copy(inIsrael = on) } },
+                    )
+                    CommitSlider(
+                        value = j.candleLightingMinutes.toFloat(),
+                        onCommit = { v -> vm.updateJewish { it.copy(candleLightingMinutes = v.toInt()) } },
+                        valueRange = 0f..60f,
+                        steps = 11,
+                        label = { v -> Text(stringResource(R.string.jewish_candles, v.toInt()), style = MaterialTheme.typography.bodyMedium) },
+                    )
+                    Text(stringResource(R.string.jewish_havdalah), style = MaterialTheme.typography.labelLarge)
+                    Segmented(
+                        labels = listOf(stringResource(R.string.jewish_havdalah_nightfall), stringResource(R.string.jewish_havdalah_minutes_mode)),
+                        selected = if (j.havdalahMode == HavdalahMode.NIGHTFALL) 0 else 1,
+                        onSelect = { index ->
+                            vm.updateJewish { it.copy(havdalahMode = if (index == 0) HavdalahMode.NIGHTFALL else HavdalahMode.MINUTES_AFTER_SUNSET) }
+                        },
+                    )
+                    if (j.havdalahMode == HavdalahMode.MINUTES_AFTER_SUNSET) {
+                        CommitSlider(
+                            value = j.havdalahMinutes.toFloat(),
+                            onCommit = { v -> vm.updateJewish { it.copy(havdalahMinutes = v.toInt()) } },
+                            valueRange = 20f..90f,
+                            steps = 13,
+                            label = { v -> Text(stringResource(R.string.jewish_havdalah_minutes, v.toInt()), style = MaterialTheme.typography.bodyMedium) },
+                        )
+                    }
+                    preview?.upcoming?.firstOrNull()?.let { span ->
+                        Text(
+                            stringResource(R.string.jewish_preview, Labels.holyName(span), Labels.dayTime(span.startMillis), Labels.dayTime(span.endMillis)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Text(stringResource(R.string.jewish_custom_note), style = MaterialTheme.typography.bodySmall)
                 }
             }
 

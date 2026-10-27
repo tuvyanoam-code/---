@@ -3,6 +3,8 @@ package com.tuvyanoam.soundpilot.core.automation
 import com.tuvyanoam.soundpilot.core.engine.AdaptiveVolumeTracker
 import com.tuvyanoam.soundpilot.core.engine.RuleEngine
 import com.tuvyanoam.soundpilot.core.engine.TimeMath
+import com.tuvyanoam.soundpilot.core.jewish.JewishCalendarService
+import com.tuvyanoam.soundpilot.core.model.AppSettings
 import com.tuvyanoam.soundpilot.core.model.ActivityEntry
 import com.tuvyanoam.soundpilot.core.model.AudioCommand
 import com.tuvyanoam.soundpilot.core.model.AudioState
@@ -117,7 +119,7 @@ class AutomationCoordinator(
         }
         val activeTemporary = state.temporary
 
-        val snapshot = context.snapshot()
+        val snapshot = withJewishCalendar(context.snapshot(), settings)
         // While a temporary mode runs, rules see the settings it will return to, not the temporary ones.
         val current = activeTemporary?.previous ?: audio.read()
         val evaluation = RuleEngine.evaluate(rules, snapshot, state.engine, current, forceReapply)
@@ -168,6 +170,16 @@ class AutomationCoordinator(
         if (rules.any { r -> r.enabled && r.conditions.any { it is Condition.InCalendarEvent } }) {
             context.nextCalendarChangeMillis()?.let { candidates += it + BOUNDARY_SLACK_MILLIS }
         }
+        rules.asSequence()
+            .filter { it.enabled }
+            .flatMap { it.conditions.asSequence() }
+            .filterIsInstance<Condition.HolyTime>()
+            .forEach { condition ->
+                snapshot.holyPeriods.filter(condition::covers).forEach { period ->
+                    candidates += condition.startOf(period) + BOUNDARY_SLACK_MILLIS
+                    candidates += condition.endOf(period) + BOUNDARY_SLACK_MILLIS
+                }
+            }
         temporary?.let { candidates += it.untilMillis }
         val next = candidates.filter { it > now }.minOrNull()
         if (next != null) scheduler.schedule(TAG_EVALUATE, next) else scheduler.cancel(TAG_EVALUATE)
@@ -251,11 +263,29 @@ class AutomationCoordinator(
         } ?: return
         log(ActivityEntry.Type.USER_CHANGE, text)
         if (!settings.learningEnabled) return
-        val snapshot = runCatching { context.snapshot() }.getOrNull() ?: return
+        val snapshot = runCatching { withJewishCalendar(context.snapshot(), settings) }.getOrNull() ?: return
         storage.events.recordUserEvent(UserEvent(clock.now(), kind, ringerMode, stream, percent, dnd, snapshot))
     }
 
     suspend fun currentAudio(): AudioState = audio.read()
+
+    /** Adds Shabbat and Yom Tov information for the configured location to a snapshot. */
+    private fun withJewishCalendar(snapshot: ContextSnapshot, settings: AppSettings): ContextSnapshot {
+        val now = snapshot.epochMillis
+        // Aligned to the hour so the calendar's cache serves every evaluation within it.
+        val base = now - now % HOUR_MILLIS
+        val periods = runCatching {
+            JewishCalendarService.periods(base - 2 * DAY_MILLIS, base + 9 * DAY_MILLIS, settings.jewish)
+        }.getOrDefault(emptyList())
+        val current = periods.filter { it.contains(now) }
+        val nextStart = periods.filter { it.startMillis > now }.minOfOrNull { it.startMillis }
+        return snapshot.copy(
+            holyPeriods = periods,
+            shabbatNow = current.any { it.shabbat },
+            yomTovNow = current.any { it.yomTov },
+            minutesToHolyStart = nextStart?.let { ((it - now) / MINUTE_MILLIS).toInt() }?.takeIf { it <= HOLY_LEAD_MINUTES },
+        )
+    }
 
     private suspend fun applyAll(commands: List<AudioCommand>): List<String> = commands.mapNotNull { audio.apply(it) }.distinct()
 
@@ -271,6 +301,9 @@ class AutomationCoordinator(
         const val REASON_TEMPORARY_END = "temporary_end"
         const val MAX_TEMPORARY_MINUTES = 24 * 60
         private const val MINUTE_MILLIS = 60_000L
+        private const val HOUR_MILLIS = 60 * MINUTE_MILLIS
+        private const val DAY_MILLIS = 24 * HOUR_MILLIS
+        private const val HOLY_LEAD_MINUTES = 180
         private const val BOUNDARY_SLACK_MILLIS = 2_000L
     }
 }

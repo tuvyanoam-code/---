@@ -1,6 +1,6 @@
 # SoundPilot — אוטומציה חכמה לצליל בטלפון
 
-אפליקציית אנדרואיד (Kotlin + Jetpack Compose) שמנהלת לבד את מצב הצלצול, העוצמות ו„נא לא להפריע” לפי המקום, השעה, היומן, הרעש בסביבה, הרכב והאוזניות — לומדת את ההרגלים שלך ומשלבת את Claude כעוזר חכם שמבין בקשות בעברית ומפעיל אוטומציות בעצמו.
+אפליקציית אנדרואיד (Kotlin + Jetpack Compose) שמנהלת לבד את מצב הצלצול, העוצמות ו„נא לא להפריע” לפי המקום, השעה, הלוח העברי (שבתות וחגים), היומן, הרעש בסביבה, הרכב והאוזניות — לומדת את ההרגלים שלך ומשלבת את Claude כעוזר חכם שמבין בקשות בעברית ומפעיל אוטומציות בעצמו.
 
 ## מה האפליקציה יודעת לעשות
 
@@ -15,12 +15,21 @@
 - העוצמה עולה מהר כשנהיה רועש (כדי לא לפספס שיחה) ויורדת לאט, עם החלקה והיסטרזיס כדי לא „לקפוץ”.
 - טווחים וכיול מיקרופון מתכווננים, כולל „כיול בחדר שקט”.
 
+**לוח שנה עברי**
+- תנאי „שבת וחגים” שמחושב אוטומטית בכל שבוע ובכל חג: מהדלקת נרות ועד צאת השבת/החג, לפי העיר שלך.
+- מנהגי מקום: ירושלים 40 דקות, חיפה ופתח תקווה 30, רוב המקומות 20 — ואפשר לכוונן. צאת השבת לפי צאת הכוכבים (8.5°) או מספר דקות קבוע אחרי השקיעה (למשל 72 לרבנו תם).
+- ארץ ישראל / חו״ל (יום טוב שני של גלויות), ימים רצופים (חג שצמוד לשבת) כחלון אחד, ואפשרות להשתיק כמה דקות לפני הדלקת נרות.
+- כרטיס בדף הבית: התאריך העברי (מתחלף בצאת הכוכבים), השבת/החג הבאים עם שעות כניסה ויציאה.
+- Claude מכיר את הלוח: „תשתיק אותי בשבתות ובחגים, 15 דקות לפני הדלקת נרות”, „אני גר בחיפה”.
+- הלמידה מזהה גם הרגל של השתקה לפני שבת ומציעה כלל מתאים.
+- החישובים נעשים עם ספריית [KosherJava Zmanim](https://github.com/KosherJava/zmanim) (רישיון LGPL 2.1).
+
 **כללים (אוטומציות)**
 - תנאים: מקום (גדר גאוגרפית), שעות וימים (כולל חלונות של כמה ימים — למשל שבת משישי 16:00 עד מוצ״ש 20:00), אירוע ביומן (אפשר לפי מילה בכותרת), רשת Wi-Fi, מכשיר בלוטות׳ (רכב), טעינה, אוזניות, ורמת רעש.
 - פעולות: מצב צלצול, כל עוצמה בנפרד, „נא לא להפריע”, הפעלת/כיבוי עוצמה מסתגלת, התראה.
 - עדיפויות בין כללים, ושחזור אוטומטי של ההגדרות הקודמות כשהכלל מסתיים.
 - הכללים מגיבים רק לשינויים — אם שינית ידנית בזמן שכלל פעיל, האפליקציה לא „נלחמת” בך.
-- תבניות מוכנות: לילה שקט, שבת, שעות עבודה (א׳–ה׳ בעברית), פגישות, רכב, אוזניות, מקום רועש, חדר שקט.
+- תבניות מוכנות: לילה שקט, שבת וחגים, שעות עבודה (א׳–ה׳ בעברית), פגישות, רכב, אוזניות, מקום רועש, חדר שקט.
 
 **למידה**
 - כל שינוי צליל ידני נרשם יחד עם ההקשר (מקום, שעה, רשת, בלוטות׳, יומן, רעש) — רק בטלפון.
@@ -36,17 +45,40 @@
 
 ## התקנה
 
-1. ב-GitHub: **Actions → Build APK** → הריצה האחרונה (ירוקה) → **Artifacts → SoundPilot-apk**.
-2. בטלפון: פותחים את `app-release.apk` (או `app-debug.apk`) ומאשרים התקנה ממקור לא ידוע.
+1. ב-GitHub: **Releases** → הגרסה האחרונה → `SoundPilot-1.1.N.apk` (קישור קבוע: `https://github.com/tuvyanoam-code/---/releases/latest`).
+2. בטלפון: פותחים את הקובץ ומאשרים התקנה ממקור לא ידוע. גרסאות חדשות מותקנות מעל הקודמות בלי לאבד נתונים.
 3. בפתיחה הראשונה מאשרים את ההרשאות שבכרטיס בדף הבית. החשובות:
    - **גישה ל„נא לא להפריע”** — בלי זה אי אפשר לעבור למצב שקט.
    - **מיקום → „לאפשר כל הזמן”** — לכללי מקום.
    - **מיקרופון** — לעוצמה המסתגלת.
    - **יומן**, **מכשירים בקרבת מקום**, **שעונים ותזכורות**, **סוללה ללא הגבלה** — לפי הצורך.
-4. **הגדרות → Claude**: מדביקים מפתח API מ-[console.anthropic.com](https://console.anthropic.com/settings/keys) ולוחצים „שמירה ובדיקה”.
+4. **הגדרות → לוח שנה עברי**: בוחרים עיר (ברירת המחדל ירושלים).
+5. **הגדרות → Claude**: מדביקים מפתח API מ-[console.anthropic.com](https://console.anthropic.com/settings/keys) ולוחצים „שמירה ובדיקה”.
 
-> **עדכונים:** בלי מפתח חתימה משלך כל בנייה ב-CI נחתמת במפתח זמני, ולכן כדי להתקין גרסה חדשה צריך להסיר את הקודמת. כדי לעדכן בלי הסרה, צרו keystore והוסיפו ל-GitHub Secrets:
-> `SOUNDPILOT_KEYSTORE_BASE64` (התוכן של קובץ ה-jks ב-base64), `SOUNDPILOT_KEYSTORE_PASSWORD`, `SOUNDPILOT_KEY_ALIAS`, `SOUNDPILOT_KEY_PASSWORD`.
+### מפתח חתימה קבוע
+
+כל גרסה נחתמת באותו מפתח, ולכן מתקינים עדכונים מעל הגרסה הקיימת. המפתח לא נמצא במאגר (המאגר ציבורי), אלא ב-GitHub Secrets:
+
+- `SOUNDPILOT_KEYSTORE_BASE64` — קובץ ה-keystore בקידוד base64
+- `SOUNDPILOT_KEYSTORE_PASSWORD` — הסיסמה
+
+(Settings → Secrets and variables → Actions → New repository secret). כשהם מוגדרים, כל דחיפה בונה APK חתום ומפרסמת אותו כ-Release. **שמרו גיבוי של קובץ ה-keystore והסיסמה** — בלעדיהם אי אפשר לעדכן את האפליקציה בלי להסיר אותה.
+
+### בנייה על המחשב
+
+1. מתקינים [Android Studio](https://developer.android.com/studio) (כולל JDK 17 ו-Android SDK), ופותחים את התיקייה.
+2. לחתימה במפתח הקבוע: שמים את `soundpilot-release.jks` בתיקייה הראשית ויוצרים לידו `keystore.properties` (לא נשמר ב-git):
+   ```properties
+   storeFile=soundpilot-release.jks
+   storePassword=<הסיסמה>
+   keyAlias=soundpilot
+   keyPassword=<הסיסמה>
+   ```
+3. בונים:
+   ```bash
+   ./gradlew :core:test             # בדיקות
+   ./gradlew :app:assembleRelease   # APK חתום: app/build/outputs/apk/release/app-release.apk
+   ```
 
 ## פרטיות ועלויות
 
@@ -60,6 +92,7 @@
 ```
 core/   מודול Kotlin טהור (נבדק ביחידות, ללא תלות באנדרואיד)
   model/       כללים, תנאים, פעולות, הקשר, הגדרות
+  jewish/      לוח עברי: שבתות, חגים, הדלקת נרות וצאת הכוכבים (KosherJava)
   engine/      מנוע הכללים, חלונות זמן, עוצמה מסתגלת וחישובי רעש
   learning/    זיהוי הרגלים במכשיר ושירות הלמידה
   automation/  AutomationCoordinator — הלב: הערכת כללים, החלה, מצב זמני, עוצמה מסתגלת, תיעוד
@@ -71,16 +104,8 @@ app/    אפליקציית האנדרואיד
   ui/          Jetpack Compose (Material 3), עברית ואנגלית, RTL
 ```
 
-בנייה מקומית (דורש Android SDK ו-JDK 17):
-
-```bash
-./gradlew :core:test            # בדיקות יחידה
-./gradlew :app:assembleDebug    # APK לניפוי שגיאות
-./gradlew :app:assembleRelease  # APK מוקטן (R8)
-```
-
 ---
 
 ## English summary
 
-SoundPilot is an Android app that automates the phone's sound — ringer mode, per-stream volumes and Do Not Disturb — based on saved places (geofences), time windows (including multi-day ones like Shabbat), calendar events, Wi-Fi, Bluetooth devices, charging, headphones and ambient noise. It raises the ring volume in loud places and lowers it in quiet ones, learns your routines from manual changes (on-device pattern mining, optionally Claude), and includes a Claude-powered assistant (Anthropic Java SDK, your own API key) that understands natural language, changes settings, builds rules, remembers preferences and can react on its own to situations no rule covers. The UI is Jetpack Compose with Hebrew and English. `core` is a pure Kotlin module with unit tests (including the Claude tool loop against a mock API); CI builds installable APKs on every push.
+SoundPilot is an Android app that automates the phone's sound — ringer mode, per-stream volumes and Do Not Disturb — based on saved places (geofences), time windows, the Hebrew calendar (Shabbat and Yom Tov from candle lighting to nightfall for the user's city, via KosherJava), calendar events, Wi-Fi, Bluetooth devices, charging, headphones and ambient noise. It raises the ring volume in loud places and lowers it in quiet ones, learns your routines from manual changes (on-device pattern mining, optionally Claude), and includes a Claude-powered assistant (Anthropic Java SDK, your own API key) that understands natural language, changes settings, builds rules, remembers preferences and can react on its own to situations no rule covers. The UI is Jetpack Compose with Hebrew and English. `core` is a pure Kotlin module with unit tests (including the Claude tool loop against a mock API); CI builds installable APKs on every push and, when the signing secrets are set, publishes them as GitHub releases signed with a permanent key.
