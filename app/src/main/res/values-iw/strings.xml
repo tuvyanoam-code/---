@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SoundPilot</string>
+    <string name="tile_label">SoundPilot</string>
+
+    <!-- כללי -->
+    <string name="back">חזרה</string>
+    <string name="cancel">ביטול</string>
+    <string name="delete">מחיקה</string>
+    <string name="save">שמירה</string>
+    <string name="settings">הגדרות</string>
+    <string name="yes">כן</string>
+    <string name="no">לא</string>
+    <string name="on">פועל</string>
+    <string name="off">כבוי</string>
+    <string name="no_change">ללא שינוי</string>
+    <string name="grant">אישור</string>
+    <string name="granted">אושר</string>
+    <string name="open_settings">פתיחת ההגדרות</string>
+    <string name="db_value">%d דציבל</string>
+    <string name="minutes_short">%d דק\'</string>
+    <string name="hours_short">%d שע\'</string>
+    <string name="for_minutes">%1$s למשך %2$d דק\'</string>
+    <string name="latitude">קו רוחב</string>
+    <string name="longitude">קו אורך</string>
+
+    <!-- לשוניות -->
+    <string name="tab_home">בית</string>
+    <string name="tab_rules">כללים</string>
+    <string name="tab_places">מקומות</string>
+    <string name="tab_assistant">Claude</string>
+    <string name="tab_learn">למידה</string>
+
+    <!-- שמות מצבים -->
+    <string name="mode_normal">צלצול</string>
+    <string name="mode_vibrate">רטט</string>
+    <string name="mode_silent">שקט</string>
+    <string name="stream_ring">צלצול</string>
+    <string name="stream_notification">התראות</string>
+    <string name="stream_media">מדיה</string>
+    <string name="stream_alarm">שעון מעורר</string>
+    <string name="dnd_off">נא לא להפריע כבוי</string>
+    <string name="dnd_priority">עדיפות בלבד</string>
+    <string name="dnd_alarms">שעונים מעוררים בלבד</string>
+    <string name="dnd_total">שקט מוחלט</string>
+    <string name="days_every">כל יום</string>
+
+    <!-- תנאים -->
+    <string name="cond_place">ב%s</string>
+    <string name="cond_time">%1$s %2$s–%3$s</string>
+    <string name="cond_time_span">%1$s %2$s ← %3$s (+%4$d ימים)</string>
+    <string name="cond_all_day">%s, כל היום</string>
+    <string name="cond_calendar">בזמן אירוע ביומן</string>
+    <string name="cond_calendar_keyword">בזמן אירוע שמכיל „%s”</string>
+    <string name="cond_wifi">Wi-Fi: %s</string>
+    <string name="cond_bluetooth">בלוטות\': %s</string>
+    <string name="cond_charging">בטעינה</string>
+    <string name="cond_on_battery">על סוללה</string>
+    <string name="cond_headphones">אוזניות מחוברות</string>
+    <string name="cond_no_headphones">בלי אוזניות</string>
+    <string name="cond_noise_above">רעש ≥ %d דציבל</string>
+    <string name="cond_noise_below">רעש ≤ %d דציבל</string>
+    <string name="cond_noise_between">רעש %1$d–%2$d דציבל</string>
+    <string name="cond_title_place">מקום</string>
+    <string name="cond_title_time">שעות וימים</string>
+    <string name="cond_title_calendar">אירוע ביומן</string>
+    <string name="cond_title_wifi">רשת Wi-Fi</string>
+    <string name="cond_title_bluetooth">מכשיר בלוטות\'</string>
+    <string name="cond_title_charging">טעינה</string>
+    <string name="cond_title_headphones">אוזניות</string>
+    <string name="cond_title_noise">רעש סביבתי</string>
+    <string name="cond_calendar_keyword_hint">רק אירועים שמכילים (לא חובה)</string>
+    <string name="cond_wifi_hint">שם הרשת</string>
+    <string name="cond_bluetooth_hint">שם המכשיר, למשל הרכב</string>
+    <string name="cond_noise_range">רעש בין %1$d ל-%2$d דציבל</string>
+    <string name="cond_noise_scale">30 חדר שקט · 50 משרד · 70 רחוב סואן · 85+ רועש מאוד</string>
+
+    <!-- פעולות -->
+    <string name="act_volume">%1$s %2$d%%</string>
+    <string name="act_volume_title">עוצמת %s</string>
+    <string name="act_dnd">נא לא להפריע: %s</string>
+    <string name="act_adaptive_on">עוצמה מסתגלת פועלת</string>
+    <string name="act_adaptive_off">עוצמה מסתגלת כבויה</string>
+    <string name="act_notify">התראה: „%s”</string>
+    <string name="act_ringer_title">מצב צלצול</string>
+    <string name="act_dnd_title">נא לא להפריע</string>
+    <string name="act_adaptive_title">עוצמה מסתגלת לרעש</string>
+    <string name="act_notify_hint">התראה כשהכלל מתחיל (לא חובה)</string>
+
+    <!-- בית -->
+    <string name="home_sound">מצב צליל</string>
+    <string name="home_quick_mute">השתקה מהירה</string>
+    <string name="home_temporary_until">%1$s עד %2$s</string>
+    <string name="home_volumes">עוצמות</string>
+    <string name="home_automation">אוטומציה</string>
+    <string name="home_automation_switch">אוטומציה פועלת</string>
+    <string name="home_service_running">פועלת ברקע</string>
+    <string name="home_service_stopped">השירות ברקע לא פועל</string>
+    <string name="home_adaptive">עוצמת צלצול מסתגלת</string>
+    <string name="home_adaptive_desc">חזק יותר במקומות רועשים, שקט יותר במקומות שקטים</string>
+    <string name="home_adaptive_running">מודדת את רעש החדר כל כמה דקות</string>
+    <string name="home_adaptive_needs_mic">נדרשת גישה למיקרופון</string>
+    <string name="home_context">עכשיו</string>
+    <string name="ctx_place">מקום</string>
+    <string name="ctx_wifi">Wi-Fi</string>
+    <string name="ctx_bluetooth">בלוטות\'</string>
+    <string name="ctx_charging">בטעינה</string>
+    <string name="ctx_headphones">אוזניות</string>
+    <string name="ctx_noise">רעש</string>
+    <string name="ctx_calendar">יומן</string>
+    <string name="ctx_active_rules">כללים פעילים</string>
+    <string name="ctx_no_active_rules">אין כרגע כלל פעיל.</string>
+
+    <!-- כללים -->
+    <string name="rule_new">כלל חדש</string>
+    <string name="rule_edit">עריכת כלל</string>
+    <string name="rule_unnamed">הכלל שלי</string>
+    <string name="rule_templates">להתחיל מתבנית</string>
+    <string name="rules_empty_title">עדיין אין כללים</string>
+    <string name="rules_empty_text">בחרו תבנית, תארו כלל ל-Claude או צרו אחד בעצמכם.</string>
+    <string name="rule_describe_title">תארו כלל במילים</string>
+    <string name="rule_describe_hint">למשל: „רטט בזמן פגישות, ושקט בשבת”</string>
+    <string name="rule_describe_button">לבנות עם Claude</string>
+    <string name="rule_when">מתי: %s</string>
+    <string name="rule_then">אז: %s</string>
+    <string name="rule_active_now">פעיל עכשיו</string>
+    <string name="origin_ai">מ-Claude</string>
+    <string name="origin_learned">נלמד</string>
+    <string name="rule_from_claude">Claude בנה את הכלל הזה</string>
+    <string name="rule_name">שם</string>
+    <string name="rule_enabled">מופעל</string>
+    <string name="rule_section_when">מתי (כל התנאים יחד)</string>
+    <string name="rule_when_hint">הפעילו תנאי אחד או יותר.</string>
+    <string name="rule_section_then">אז</string>
+    <string name="rule_section_options">אפשרויות</string>
+    <string name="rule_no_places">אין עדיין מקומות שמורים. הוסיפו בלשונית מקומות.</string>
+    <string name="rule_restore">שחזור בסיום</string>
+    <string name="rule_restore_desc">להחזיר את ההגדרות הקודמות כשהכלל מפסיק לחול</string>
+    <string name="rule_priority">עדיפות: %d</string>
+    <string name="rule_priority_desc">כששני כללים פעילים סותרים, בעל העדיפות הגבוהה גובר.</string>
+    <string name="rule_delete_title">למחוק את הכלל?</string>
+    <string name="rule_delete_text">למחוק את „%s”?</string>
+    <string name="time_from">מ-</string>
+    <string name="time_to">עד</string>
+    <string name="ends_same_day">מסתיים באותו יום</string>
+    <string name="ends_next_morning">מסתיים למחרת בבוקר</string>
+    <string name="ends_next_day">מסתיים למחרת</string>
+    <string name="ends_days_later">מסתיים כעבור %d ימים</string>
+    <string name="time_all_day_note">שעת התחלה וסיום זהות פירושן כל היום.</string>
+
+    <!-- תבניות -->
+    <string name="tpl_night">לילה שקט</string>
+    <string name="tpl_shabbat">שבת</string>
+    <string name="tpl_work">שעות עבודה</string>
+    <string name="tpl_meetings">פגישות</string>
+    <string name="tpl_car">ברכב</string>
+    <string name="tpl_headphones">אוזניות</string>
+    <string name="tpl_loud">מקום רועש</string>
+    <string name="tpl_quiet">חדר שקט</string>
+
+    <!-- מקומות -->
+    <string name="places_empty_title">עדיין אין מקומות</string>
+    <string name="places_empty_text">שמרו בית, עבודה, בית כנסת או חדר כושר, ואז השתמשו בהם בכללים.</string>
+    <string name="place_add">הוספת מקום</string>
+    <string name="place_edit">עריכת מקום</string>
+    <string name="place_name">שם</string>
+    <string name="place_name_hint">למשל: בית, עבודה, בית כנסת</string>
+    <string name="place_location">מיקום</string>
+    <string name="place_use_current">המיקום הנוכחי שלי</string>
+    <string name="place_search">חיפוש כתובת</string>
+    <string name="place_no_location">לא ניתן לקבל את המיקום הנוכחי. ודאו שהמיקום פועל ומאושר.</string>
+    <string name="place_no_results">לא נמצאה כתובת מתאימה.</string>
+    <string name="place_incomplete">תנו למקום שם ומיקום.</string>
+    <string name="place_radius">רדיוס: %d מ\'</string>
+    <string name="place_radius_hint">100–200 מטר מתאים לרוב הבניינים. רדיוס גדול אמין יותר אך פחות מדויק.</string>
+    <string name="place_summary">%1$d מ\' · %2$s</string>
+    <string name="place_here">כאן עכשיו</string>
+    <string name="place_location_needed">נדרשת גישה למיקום עבור מקומות</string>
+    <string name="place_delete_title">למחוק את המקום?</string>
+    <string name="place_delete_text">למחוק את „%1$s”? כללים שמשתמשים בו (%2$d) יפסיקו לפעול.</string>
+
+    <!-- עוזר -->
+    <string name="chat_new">שיחה חדשה</string>
+    <string name="chat_hint">שאלו או בקשו מ-Claude…</string>
+    <string name="chat_send">שליחה</string>
+    <string name="chat_voice">דיבור</string>
+    <string name="chat_no_speech">זיהוי דיבור לא זמין בטלפון הזה</string>
+    <string name="chat_need_key_title">חיבור Claude</string>
+    <string name="chat_need_key_text">הוסיפו מפתח API של Claude בהגדרות כדי לשוחח עם העוזר, לבנות כללים מתיאור ולקבל הצעות חכמות.</string>
+    <string name="chat_intro_title">העוזר שלך לצליל</string>
+    <string name="chat_intro_text">ספרו ל-Claude מה אתם רוצים במילים שלכם. הוא יכול לשנות את הצליל מיד, ליצור ולערוך כללים ומקומות ולזכור את ההעדפות שלכם.</string>
+    <string name="chat_example_meetings">רטט בזמן פגישות ביומן</string>
+    <string name="chat_example_hour">שקט לשעה</string>
+    <string name="chat_example_car">צלצול חזק כשהבלוטות\' של הרכב מתחבר</string>
+    <string name="chat_example_shabbat">שקט בכל שבת</string>
+    <string name="chat_example_learned">מה למדת על ההרגלים שלי?</string>
+
+    <!-- בעיות AI -->
+    <string name="ai_no_key">קודם הוסיפו מפתח API של Claude בהגדרות.</string>
+    <string name="ai_invalid_key">מפתח ה-API נדחה. בדקו אותו בהגדרות.</string>
+    <string name="ai_permission">למפתח הזה אין הרשאה למודל שנבחר.</string>
+    <string name="ai_rate_limited">יותר מדי בקשות כרגע. נסו שוב בעוד דקה.</string>
+    <string name="ai_overloaded">Claude עמוס כרגע. נסו שוב בקרוב.</string>
+    <string name="ai_model_not_found">המודל שנבחר לא זמין למפתח הזה. בחרו אחר בהגדרות.</string>
+    <string name="ai_network">אין חיבור ל-Claude. בדקו את החיבור לאינטרנט.</string>
+    <string name="ai_unknown">משהו השתבש בשיחה עם Claude.</string>
+    <string name="ai_refused">Claude סירב לבקשה הזו.</string>
+    <string name="ai_step_limit">Claude עצר אחרי צעדים רבים. נסו בקשה פשוטה יותר.</string>
+    <string name="ai_truncated">התשובה נקטעה.</string>
+
+    <!-- למידה -->
+    <string name="learn_title">לומדים את השגרה שלך</string>
+    <string name="learn_intro">שינויים ידניים שנרשמו: %d. הרגלים שחוזרים על עצמם הופכים להצעות לכללים. ניתוח במכשיר חינמי ופרטי; ניתוח עם Claude שולח את היומן הזה ל-Anthropic.</string>
+    <string name="learn_on_device">ניתוח במכשיר</string>
+    <string name="learn_with_claude">לשאול את Claude</string>
+    <string name="learn_suggestions">כללים מוצעים</string>
+    <string name="learn_no_suggestions">עדיין אין הצעות. המשיכו להשתמש בטלפון כרגיל; אחרי כמה ימים של הרגלים חוזרים יופיעו כאן הצעות.</string>
+    <string name="learn_accept">הוספת הכלל</string>
+    <string name="learn_dismiss">לא בשבילי</string>
+    <string name="learn_memory">מה Claude זוכר עליך</string>
+    <string name="learn_memory_empty">עדיין כלום. Claude שומר העדפות שהוא לומד במהלך השיחות.</string>
+    <string name="learn_activity">פעילות</string>
+    <string name="learn_activity_empty">עדיין לא קרה כלום.</string>
+    <string name="learn_rationale">נצפה %1$d פעמים ב-%2$d ימים שונים (%3$d%% מהפעמים).</string>
+    <string name="learn_rule_place">%1$s ב%2$s</string>
+    <string name="learn_rule_wifi">%1$s ברשת %2$s</string>
+    <string name="learn_rule_bluetooth">%1$s עם %2$s</string>
+    <string name="learn_rule_calendar">%s בזמן פגישות</string>
+    <string name="learn_rule_time">%1$s %2$s מ-%3$s</string>
+
+    <!-- יומן פעילות -->
+    <string name="log_rule_on">כלל התחיל: %s</string>
+    <string name="log_rule_off">כלל הסתיים: %s</string>
+    <string name="log_user_ringer">עברת ל%s</string>
+    <string name="log_user_volume">שינית את עוצמת ה%1$s ל-%2$d%%</string>
+    <string name="log_user_dnd">הגדרת %s</string>
+    <string name="log_adaptive">עוצמת צלצול %1$d%% (רעש %2$d דציבל)</string>
+    <string name="log_temporary_start">%1$s למשך %2$d דק\'</string>
+    <string name="log_temporary_end">המצב הזמני הסתיים, ההגדרות שוחזרו</string>
+    <string name="log_apply_failed">לא ניתן להחיל: %s</string>
+    <string name="log_ai_action">Claude: %s</string>
+
+    <!-- תוויות פעולות העוזר -->
+    <string name="tool_rule_created">נוצר כלל: %s</string>
+    <string name="tool_rule_updated">עודכן כלל: %s</string>
+    <string name="tool_rule_deleted">נמחק כלל: %s</string>
+    <string name="tool_rule_enabled">הופעל כלל: %s</string>
+    <string name="tool_rule_disabled">כובה כלל: %s</string>
+    <string name="tool_place_saved">נשמר מקום: %s</string>
+    <string name="tool_remembered">נזכר: %s</string>
+    <string name="tool_forgot">נמחקה הערה</string>
+    <string name="tool_suggested">הוצע: %s</string>
+    <string name="tool_drafted">טיוטה: %s</string>
+    <string name="tool_temporary_cancelled">המצב הזמני בוטל</string>
+
+    <!-- התראות ושירות -->
+    <string name="channel_service">מצב האוטומציה</string>
+    <string name="channel_service_desc">מוצג כשהאוטומציה פועלת ברקע</string>
+    <string name="channel_rules">הודעות כללים</string>
+    <string name="channel_assistant">פעולות של Claude</string>
+    <string name="channel_suggestions">הצעות לכללים</string>
+    <string name="notif_ai_title">Claude שינה את הצליל</string>
+    <string name="notif_suggestions_title">רעיונות חדשים לאוטומציה</string>
+    <plurals name="notif_suggestions_text">
+        <item quantity="one">הצעה חדשה לכלל לפי ההרגלים שלך</item>
+        <item quantity="two">%d הצעות חדשות לכללים לפי ההרגלים שלך</item>
+        <item quantity="many">%d הצעות חדשות לכללים לפי ההרגלים שלך</item>
+        <item quantity="other">%d הצעות חדשות לכללים לפי ההרגלים שלך</item>
+    </plurals>
+    <string name="service_title_starting">SoundPilot מתחיל</string>
+    <string name="service_title">SoundPilot · %s</string>
+    <string name="service_no_rule">אין כלל פעיל</string>
+    <string name="service_active_rules">פעיל: %s</string>
+    <string name="service_temporary">%1$s עד %2$s</string>
+    <string name="service_noise">%d דציבל</string>
+    <string name="action_end_now">לסיים עכשיו</string>
+    <string name="action_silent_hour">שקט לשעה</string>
+    <string name="action_vibrate_hour">רטט לשעה</string>
+    <string name="error_dnd_access">אין הרשאת גישה ל„נא לא להפריע”</string>
+
+    <!-- הרשאות -->
+    <string name="permissions_needed">נדרשות הרשאות</string>
+    <string name="perm_dnd">גישה ל„נא לא להפריע”</string>
+    <string name="perm_dnd_reason">נדרשת כדי לעבור למצב שקט ולשלוט ב„נא לא להפריע”</string>
+    <string name="perm_notifications">התראות</string>
+    <string name="perm_notifications_reason">מציג מצב, הודעות כללים והצעות</string>
+    <string name="perm_location">מיקום</string>
+    <string name="perm_location_reason">מזהה את המקומות השמורים ואת שם רשת ה-Wi-Fi</string>
+    <string name="perm_background_location">מיקום כל הזמן</string>
+    <string name="perm_background_location_reason">מאפשר לכללי מקום לפעול גם כשהאפליקציה סגורה. בחרו „לאפשר כל הזמן”.</string>
+    <string name="perm_microphone">מיקרופון</string>
+    <string name="perm_microphone_reason">מודד כמה רועש בחדר. שום דבר לא מוקלט או נשלח.</string>
+    <string name="perm_calendar">יומן</string>
+    <string name="perm_calendar_reason">משתיק את הטלפון בזמן פגישות</string>
+    <string name="perm_bluetooth">מכשירים בקרבת מקום</string>
+    <string name="perm_bluetooth_reason">מזהה מכשירי בלוטות\' כמו הרכב</string>
+    <string name="perm_alarms">שעונים מעוררים ותזכורות</string>
+    <string name="perm_alarms_reason">מתחיל ומסיים כללי זמן בדיוק בזמן</string>
+    <string name="perm_battery">סוללה ללא הגבלה</string>
+    <string name="perm_battery_reason">שומר על פעולה אמינה של האוטומציה ברקע</string>
+
+    <!-- הגדרות -->
+    <string name="settings_claude">Claude</string>
+    <string name="key_status_saved">מפתח API שמור (מוצפן בטלפון הזה).</string>
+    <string name="key_status_missing">עדיין אין מפתח API. יכולות Claude כבויות עד שתוסיפו אחד.</string>
+    <string name="key_field">מפתח API של Claude</string>
+    <string name="key_save">שמירה ובדיקה</string>
+    <string name="key_remove">הסרת המפתח</string>
+    <string name="key_verified">המפתח עובד.</string>
+    <string name="key_saved_unverified">נשמר. לא ניתן היה לבדוק אותו כרגע; הוא ישמש כש-Claude יהיה זמין.</string>
+    <string name="key_get">קבלת מפתח ב-console.anthropic.com</string>
+    <string name="settings_model">מודל</string>
+    <string name="settings_model_desc">Opus הוא החזק ביותר; Sonnet ו-Haiku מהירים וזולים יותר לכל בקשה.</string>
+    <string name="model_opus">Claude Opus 5.5 (החזק ביותר)</string>
+    <string name="model_sonnet">Claude Sonnet 5.5 (מאוזן)</string>
+    <string name="model_haiku">Claude Haiku 5.5 (המהיר והזול ביותר)</string>
+    <string name="settings_smart_mode">מצב חכם</string>
+    <string name="settings_smart_mode_desc">כשמגיעים למקום, מתחילה פגישה או מתחבר מכשיר ואין כלל שמכסה את זה, Claude מחליט אם לשנות את הצליל. כל החלטה היא קריאת API בתשלום.</string>
+    <string name="settings_smart_limit">לכל היותר %d פעמים בשעה</string>
+    <string name="settings_daily_analysis">ניתוח הרגלים יומי עם Claude</string>
+    <string name="settings_daily_analysis_desc">פעם ביום, אם יש פעילות חדשה, Claude מחפש שגרות ומציע כללים.</string>
+    <string name="settings_adaptive">עוצמה מסתגלת</string>
+    <string name="settings_adaptive_volume">עוצמת צלצול מ-%1$d%% עד %2$d%%</string>
+    <string name="settings_adaptive_noise">שקט ב-%1$d דציבל, רועש ב-%2$d דציבל</string>
+    <string name="settings_adaptive_interval">למדוד כל</string>
+    <string name="settings_adaptive_notifications">לכוונן גם את עוצמת ההתראות</string>
+    <string name="settings_calibration">כיול מיקרופון: ‎+%d דציבל</string>
+    <string name="settings_calibrate">כיול בחדר שקט</string>
+    <string name="settings_mic_privacy">המיקרופון נפתח לכשתי שניות בכל מדידה ונשמרת רק עוצמת הרעש. אנדרואיד מציג את סמל המיקרופון בזמן המדידה.</string>
+    <string name="settings_automation">אוטומציה</string>
+    <string name="settings_learning">ללמוד מהשינויים שלי</string>
+    <string name="settings_learning_desc">רושם שינויי צליל ידניים יחד עם ההקשר, רק בטלפון הזה</string>
+    <string name="settings_clear">מחיקת ההיסטוריה שנלמדה</string>
+    <string name="settings_clear_title">למחוק את ההיסטוריה?</string>
+    <string name="settings_clear_text">פעולה זו מוחקת את השינויים שנרשמו ואת יומן הפעילות. הכללים והמקומות נשמרים.</string>
+    <string name="settings_permissions">הרשאות</string>
+    <string name="settings_about">פרטיות ואודות</string>
+    <string name="settings_privacy">הכול נשמר רק בטלפון הזה. כשמשתמשים ביכולות של Claude, הבקשה, הכללים, המקומות, המצב הנוכחי ו(בניתוח) יומן הפעילות נשלחים ל-API של Anthropic עם המפתח שלכם. שמע לעולם לא יוצא מהטלפון.</string>
+    <string name="settings_version">גרסה %s</string>
+</resources>

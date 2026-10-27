@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SoundPilot</string>
+    <string name="tile_label">SoundPilot</string>
+
+    <!-- General -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="settings">Settings</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="no_change">No change</string>
+    <string name="grant">Grant</string>
+    <string name="granted">Granted</string>
+    <string name="open_settings">Open settings</string>
+    <string name="db_value">%d dB</string>
+    <string name="minutes_short">%d min</string>
+    <string name="hours_short">%d h</string>
+    <string name="for_minutes">%1$s for %2$d min</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+
+    <!-- Tabs -->
+    <string name="tab_home">Home</string>
+    <string name="tab_rules">Rules</string>
+    <string name="tab_places">Places</string>
+    <string name="tab_assistant">Claude</string>
+    <string name="tab_learn">Learn</string>
+
+    <!-- Sound names -->
+    <string name="mode_normal">Sound</string>
+    <string name="mode_vibrate">Vibrate</string>
+    <string name="mode_silent">Silent</string>
+    <string name="stream_ring">Ringtone</string>
+    <string name="stream_notification">Notifications</string>
+    <string name="stream_media">Media</string>
+    <string name="stream_alarm">Alarm</string>
+    <string name="dnd_off">Do Not Disturb off</string>
+    <string name="dnd_priority">Priority only</string>
+    <string name="dnd_alarms">Alarms only</string>
+    <string name="dnd_total">Total silence</string>
+    <string name="days_every">Every day</string>
+
+    <!-- Conditions -->
+    <string name="cond_place">At %s</string>
+    <string name="cond_time">%1$s %2$s–%3$s</string>
+    <string name="cond_time_span">%1$s %2$s → %3$s (+%4$d d)</string>
+    <string name="cond_all_day">%s, all day</string>
+    <string name="cond_calendar">During a calendar event</string>
+    <string name="cond_calendar_keyword">During an event containing “%s”</string>
+    <string name="cond_wifi">Wi-Fi: %s</string>
+    <string name="cond_bluetooth">Bluetooth: %s</string>
+    <string name="cond_charging">Charging</string>
+    <string name="cond_on_battery">On battery</string>
+    <string name="cond_headphones">Headphones connected</string>
+    <string name="cond_no_headphones">No headphones</string>
+    <string name="cond_noise_above">Noise ≥ %d dB</string>
+    <string name="cond_noise_below">Noise ≤ %d dB</string>
+    <string name="cond_noise_between">Noise %1$d–%2$d dB</string>
+    <string name="cond_title_place">Place</string>
+    <string name="cond_title_time">Time and days</string>
+    <string name="cond_title_calendar">Calendar event</string>
+    <string name="cond_title_wifi">Wi-Fi network</string>
+    <string name="cond_title_bluetooth">Bluetooth device</string>
+    <string name="cond_title_charging">Charging</string>
+    <string name="cond_title_headphones">Headphones</string>
+    <string name="cond_title_noise">Ambient noise</string>
+    <string name="cond_calendar_keyword_hint">Only events containing (optional)</string>
+    <string name="cond_wifi_hint">Network name</string>
+    <string name="cond_bluetooth_hint">Device name, e.g. the car</string>
+    <string name="cond_noise_range">Noise between %1$d and %2$d dB</string>
+    <string name="cond_noise_scale">30 dB quiet room · 50 office · 70 busy street · 85+ very loud</string>
+
+    <!-- Actions -->
+    <string name="act_volume">%1$s %2$d%%</string>
+    <string name="act_volume_title">%s volume</string>
+    <string name="act_dnd">Do Not Disturb: %s</string>
+    <string name="act_adaptive_on">Adaptive volume on</string>
+    <string name="act_adaptive_off">Adaptive volume off</string>
+    <string name="act_notify">Notify: “%s”</string>
+    <string name="act_ringer_title">Ringer</string>
+    <string name="act_dnd_title">Do Not Disturb</string>
+    <string name="act_adaptive_title">Noise-adaptive volume</string>
+    <string name="act_notify_hint">Notification when the rule starts (optional)</string>
+
+    <!-- Home -->
+    <string name="home_sound">Sound mode</string>
+    <string name="home_quick_mute">Quick mute</string>
+    <string name="home_temporary_until">%1$s until %2$s</string>
+    <string name="home_volumes">Volumes</string>
+    <string name="home_automation">Automation</string>
+    <string name="home_automation_switch">Automation on</string>
+    <string name="home_service_running">Running in the background</string>
+    <string name="home_service_stopped">Background service is not running</string>
+    <string name="home_adaptive">Adaptive ring volume</string>
+    <string name="home_adaptive_desc">Louder in noisy places, softer in quiet ones</string>
+    <string name="home_adaptive_running">Listening to the room every few minutes</string>
+    <string name="home_adaptive_needs_mic">Needs microphone access</string>
+    <string name="home_context">Right now</string>
+    <string name="ctx_place">Place</string>
+    <string name="ctx_wifi">Wi-Fi</string>
+    <string name="ctx_bluetooth">Bluetooth</string>
+    <string name="ctx_charging">Charging</string>
+    <string name="ctx_headphones">Headphones</string>
+    <string name="ctx_noise">Noise</string>
+    <string name="ctx_calendar">Calendar</string>
+    <string name="ctx_active_rules">Active rules</string>
+    <string name="ctx_no_active_rules">No rule is active right now.</string>
+
+    <!-- Rules -->
+    <string name="rule_new">New rule</string>
+    <string name="rule_edit">Edit rule</string>
+    <string name="rule_unnamed">My rule</string>
+    <string name="rule_templates">Start from a template</string>
+    <string name="rules_empty_title">No rules yet</string>
+    <string name="rules_empty_text">Pick a template, describe a rule to Claude, or create one yourself.</string>
+    <string name="rule_describe_title">Describe a rule</string>
+    <string name="rule_describe_hint">e.g. “Vibrate during meetings, and silent on Shabbat”</string>
+    <string name="rule_describe_button">Build with Claude</string>
+    <string name="rule_when">When: %s</string>
+    <string name="rule_then">Then: %s</string>
+    <string name="rule_active_now">Active now</string>
+    <string name="origin_ai">From Claude</string>
+    <string name="origin_learned">Learned</string>
+    <string name="rule_from_claude">Claude built this rule</string>
+    <string name="rule_name">Name</string>
+    <string name="rule_enabled">Enabled</string>
+    <string name="rule_section_when">When (all must hold)</string>
+    <string name="rule_when_hint">Turn on one or more conditions.</string>
+    <string name="rule_section_then">Then</string>
+    <string name="rule_section_options">Options</string>
+    <string name="rule_no_places">No places saved yet. Add one in the Places tab.</string>
+    <string name="rule_restore">Restore when it ends</string>
+    <string name="rule_restore_desc">Put back the previous settings when the rule stops applying</string>
+    <string name="rule_priority">Priority: %d</string>
+    <string name="rule_priority_desc">When two active rules disagree, the higher priority wins.</string>
+    <string name="rule_delete_title">Delete rule?</string>
+    <string name="rule_delete_text">Delete “%s”?</string>
+    <string name="time_from">From</string>
+    <string name="time_to">To</string>
+    <string name="ends_same_day">Ends the same day</string>
+    <string name="ends_next_morning">Ends the next morning</string>
+    <string name="ends_next_day">Ends the next day</string>
+    <string name="ends_days_later">Ends %d days later</string>
+    <string name="time_all_day_note">Same start and end time means the whole day.</string>
+
+    <!-- Templates -->
+    <string name="tpl_night">Quiet night</string>
+    <string name="tpl_shabbat">Shabbat</string>
+    <string name="tpl_work">Work hours</string>
+    <string name="tpl_meetings">Meetings</string>
+    <string name="tpl_car">In the car</string>
+    <string name="tpl_headphones">Headphones</string>
+    <string name="tpl_loud">Loud place</string>
+    <string name="tpl_quiet">Quiet room</string>
+
+    <!-- Places -->
+    <string name="places_empty_title">No places yet</string>
+    <string name="places_empty_text">Save home, work, the synagogue or the gym, then use them in rules.</string>
+    <string name="place_add">Add place</string>
+    <string name="place_edit">Edit place</string>
+    <string name="place_name">Name</string>
+    <string name="place_name_hint">e.g. Home, Work, Synagogue</string>
+    <string name="place_location">Location</string>
+    <string name="place_use_current">Use my current location</string>
+    <string name="place_search">Search address</string>
+    <string name="place_no_location">Could not get the current location. Check that location is on and allowed.</string>
+    <string name="place_no_results">No matching address found.</string>
+    <string name="place_incomplete">Give the place a name and a location.</string>
+    <string name="place_radius">Radius: %d m</string>
+    <string name="place_radius_hint">100–200 m suits most buildings. Larger is more reliable but less precise.</string>
+    <string name="place_summary">%1$d m · %2$s</string>
+    <string name="place_here">Here now</string>
+    <string name="place_location_needed">Location access is needed for places</string>
+    <string name="place_delete_title">Delete place?</string>
+    <string name="place_delete_text">Delete “%1$s”? Rules using it (%2$d) will stop matching.</string>
+
+    <!-- Assistant -->
+    <string name="chat_new">New conversation</string>
+    <string name="chat_hint">Ask or tell Claude what to do…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_voice">Speak</string>
+    <string name="chat_no_speech">Speech recognition is not available on this phone</string>
+    <string name="chat_need_key_title">Connect Claude</string>
+    <string name="chat_need_key_text">Add your Claude API key in Settings to talk to the assistant, build rules from a description and get smart suggestions.</string>
+    <string name="chat_intro_title">Your sound assistant</string>
+    <string name="chat_intro_text">Tell Claude what you want in your own words. It can change sound settings right away, create and edit rules and places, and remember your preferences.</string>
+    <string name="chat_example_meetings">Vibrate during meetings in my calendar</string>
+    <string name="chat_example_hour">Silent for an hour</string>
+    <string name="chat_example_car">Ring loudly when the car Bluetooth connects</string>
+    <string name="chat_example_shabbat">Silent every Shabbat</string>
+    <string name="chat_example_learned">What have you learned about my habits?</string>
+
+    <!-- AI problems -->
+    <string name="ai_no_key">Add your Claude API key in Settings first.</string>
+    <string name="ai_invalid_key">The Claude API key was rejected. Check it in Settings.</string>
+    <string name="ai_permission">This API key is not allowed to use the selected model.</string>
+    <string name="ai_rate_limited">Too many requests right now. Try again in a minute.</string>
+    <string name="ai_overloaded">Claude is busy right now. Try again shortly.</string>
+    <string name="ai_model_not_found">The selected model is not available for this key. Choose another in Settings.</string>
+    <string name="ai_network">No connection to Claude. Check the internet connection.</string>
+    <string name="ai_unknown">Something went wrong talking to Claude.</string>
+    <string name="ai_refused">Claude declined this request.</string>
+    <string name="ai_step_limit">Claude stopped after many steps. Try a simpler request.</string>
+    <string name="ai_truncated">The answer was cut off.</string>
+
+    <!-- Learn -->
+    <string name="learn_title">Learning your routines</string>
+    <string name="learn_intro">Manual changes recorded: %d. Repeated habits become rule suggestions. On-device analysis is free and private; Claude analysis sends this log to Anthropic.</string>
+    <string name="learn_on_device">Find on device</string>
+    <string name="learn_with_claude">Ask Claude</string>
+    <string name="learn_suggestions">Suggested rules</string>
+    <string name="learn_no_suggestions">No suggestions yet. Keep using your phone as usual; after a few days of repeated habits suggestions appear here.</string>
+    <string name="learn_accept">Add rule</string>
+    <string name="learn_dismiss">Not for me</string>
+    <string name="learn_memory">What Claude remembers about you</string>
+    <string name="learn_memory_empty">Nothing yet. Claude saves preferences it learns while you chat.</string>
+    <string name="learn_activity">Activity</string>
+    <string name="learn_activity_empty">Nothing has happened yet.</string>
+    <string name="learn_rationale">Seen %1$d times on %2$d different days (%3$d%% of the time).</string>
+    <string name="learn_rule_place">%1$s at %2$s</string>
+    <string name="learn_rule_wifi">%1$s on %2$s Wi-Fi</string>
+    <string name="learn_rule_bluetooth">%1$s with %2$s</string>
+    <string name="learn_rule_calendar">%s during meetings</string>
+    <string name="learn_rule_time">%1$s %2$s from %3$s</string>
+
+    <!-- Activity log -->
+    <string name="log_rule_on">Rule started: %s</string>
+    <string name="log_rule_off">Rule ended: %s</string>
+    <string name="log_user_ringer">You switched to %s</string>
+    <string name="log_user_volume">You set %1$s volume to %2$d%%</string>
+    <string name="log_user_dnd">You set %s</string>
+    <string name="log_adaptive">Ring volume %1$d%% (noise %2$d dB)</string>
+    <string name="log_temporary_start">%1$s for %2$d min</string>
+    <string name="log_temporary_end">Temporary mode ended, settings restored</string>
+    <string name="log_apply_failed">Could not apply: %s</string>
+    <string name="log_ai_action">Claude: %s</string>
+
+    <!-- Assistant tool labels -->
+    <string name="tool_rule_created">Rule created: %s</string>
+    <string name="tool_rule_updated">Rule updated: %s</string>
+    <string name="tool_rule_deleted">Rule deleted: %s</string>
+    <string name="tool_rule_enabled">Rule enabled: %s</string>
+    <string name="tool_rule_disabled">Rule disabled: %s</string>
+    <string name="tool_place_saved">Place saved: %s</string>
+    <string name="tool_remembered">Remembered: %s</string>
+    <string name="tool_forgot">Forgot a note</string>
+    <string name="tool_suggested">Suggested: %s</string>
+    <string name="tool_drafted">Draft: %s</string>
+    <string name="tool_temporary_cancelled">Temporary mode cancelled</string>
+
+    <!-- Notifications and service -->
+    <string name="channel_service">Automation status</string>
+    <string name="channel_service_desc">Shown while automation runs in the background</string>
+    <string name="channel_rules">Rule messages</string>
+    <string name="channel_assistant">Claude actions</string>
+    <string name="channel_suggestions">Rule suggestions</string>
+    <string name="notif_ai_title">Claude adjusted your sound</string>
+    <string name="notif_suggestions_title">New ideas for automation</string>
+    <plurals name="notif_suggestions_text">
+        <item quantity="one">%d new rule suggestion based on your habits</item>
+        <item quantity="other">%d new rule suggestions based on your habits</item>
+    </plurals>
+    <string name="service_title_starting">SoundPilot is starting</string>
+    <string name="service_title">SoundPilot · %s</string>
+    <string name="service_no_rule">No rule active</string>
+    <string name="service_active_rules">Active: %s</string>
+    <string name="service_temporary">%1$s until %2$s</string>
+    <string name="service_noise">%d dB</string>
+    <string name="action_end_now">End now</string>
+    <string name="action_silent_hour">Silent 1 h</string>
+    <string name="action_vibrate_hour">Vibrate 1 h</string>
+    <string name="error_dnd_access">Do Not Disturb access is not granted</string>
+
+    <!-- Permissions -->
+    <string name="permissions_needed">Permissions needed</string>
+    <string name="perm_dnd">Do Not Disturb access</string>
+    <string name="perm_dnd_reason">Required to switch to silent and to control Do Not Disturb</string>
+    <string name="perm_notifications">Notifications</string>
+    <string name="perm_notifications_reason">Shows status, rule messages and suggestions</string>
+    <string name="perm_location">Location</string>
+    <string name="perm_location_reason">Recognizes your saved places and the Wi-Fi network name</string>
+    <string name="perm_background_location">Location all the time</string>
+    <string name="perm_background_location_reason">Lets place rules work while the app is closed. Choose “Allow all the time”.</string>
+    <string name="perm_microphone">Microphone</string>
+    <string name="perm_microphone_reason">Measures how loud the room is. Nothing is recorded or sent.</string>
+    <string name="perm_calendar">Calendar</string>
+    <string name="perm_calendar_reason">Silences the phone during meetings</string>
+    <string name="perm_bluetooth">Nearby devices</string>
+    <string name="perm_bluetooth_reason">Recognizes Bluetooth devices such as the car</string>
+    <string name="perm_alarms">Alarms and reminders</string>
+    <string name="perm_alarms_reason">Starts and ends time rules exactly on time</string>
+    <string name="perm_battery">Unrestricted battery</string>
+    <string name="perm_battery_reason">Keeps automation running reliably in the background</string>
+
+    <!-- Settings -->
+    <string name="settings_claude">Claude</string>
+    <string name="key_status_saved">API key saved (stored encrypted on this phone).</string>
+    <string name="key_status_missing">No API key yet. Claude features are off until you add one.</string>
+    <string name="key_field">Claude API key</string>
+    <string name="key_save">Save and check</string>
+    <string name="key_remove">Remove key</string>
+    <string name="key_verified">The key works.</string>
+    <string name="key_saved_unverified">Saved. It could not be checked right now; it will be used when Claude is reachable.</string>
+    <string name="key_get">Get a key at console.anthropic.com</string>
+    <string name="settings_model">Model</string>
+    <string name="settings_model_desc">Opus is the most capable; Sonnet and Haiku are faster and cost less per request.</string>
+    <string name="model_opus">Claude Opus 5.5 (most capable)</string>
+    <string name="model_sonnet">Claude Sonnet 5.5 (balanced)</string>
+    <string name="model_haiku">Claude Haiku 5.5 (fastest, cheapest)</string>
+    <string name="settings_smart_mode">Smart mode</string>
+    <string name="settings_smart_mode_desc">When you arrive somewhere, a meeting starts or a device connects and no rule covers it, Claude decides whether to change the sound. Each decision is a paid API call.</string>
+    <string name="settings_smart_limit">At most %d times per hour</string>
+    <string name="settings_daily_analysis">Daily habit analysis by Claude</string>
+    <string name="settings_daily_analysis_desc">Once a day, if there is new activity, Claude looks for routines and suggests rules.</string>
+    <string name="settings_adaptive">Adaptive volume</string>
+    <string name="settings_adaptive_volume">Ring volume from %1$d%% to %2$d%%</string>
+    <string name="settings_adaptive_noise">Quiet at %1$d dB, loud at %2$d dB</string>
+    <string name="settings_adaptive_interval">Measure every</string>
+    <string name="settings_adaptive_notifications">Adjust notification volume too</string>
+    <string name="settings_calibration">Microphone calibration: +%d dB</string>
+    <string name="settings_calibrate">Calibrate in a quiet room</string>
+    <string name="settings_mic_privacy">The microphone is opened for about two seconds per measurement and only the loudness is kept. Android shows the microphone indicator while it measures.</string>
+    <string name="settings_automation">Automation</string>
+    <string name="settings_learning">Learn from my changes</string>
+    <string name="settings_learning_desc">Records manual sound changes with their context, on this phone only</string>
+    <string name="settings_clear">Delete learned history</string>
+    <string name="settings_clear_title">Delete history?</string>
+    <string name="settings_clear_text">This deletes the recorded changes and the activity log. Rules and places are kept.</string>
+    <string name="settings_permissions">Permissions</string>
+    <string name="settings_about">Privacy and about</string>
+    <string name="settings_privacy">Everything is stored only on this phone. When you use Claude features, the request, your rules, places, current status and (for analysis) the activity log are sent to the Anthropic API with your own key. Audio never leaves the phone.</string>
+    <string name="settings_version">Version %s</string>
+</resources>
