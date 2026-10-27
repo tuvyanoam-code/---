@@ -10,5 +10,7 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
+# OpenTelemetry (an optional tracing dependency of the SDK) references AutoValue annotations, compile-time only.
+-dontwarn com.google.auto.value.**
 
 # Our persisted JSON models are serialized with kotlinx.serialization (rules bundled with the library).
