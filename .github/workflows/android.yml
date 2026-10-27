@@ -52,7 +52,12 @@ jobs:
       - name: Build APKs
         env:
           SOUNDPILOT_KEYSTORE_PASSWORD: ${{ secrets.SOUNDPILOT_KEYSTORE_PASSWORD }}
-        run: ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
+        run: |
+          if [ "$SIGNED" = "true" ]; then
+            ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
+          else
+            ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease -PunsignedRelease
+          fi
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
@@ -79,6 +84,29 @@ jobs:
               --title "SoundPilot $VERSION" \
               --notes "$(git log -1 --pretty=%B)"
           fi
+
+      # Without the signing secrets, the unsigned release APK is shared through a single pre-release so it can be
+      # signed with the permanent key outside CI. Once the secrets exist that pre-release is removed.
+      - name: Share unsigned build
+        if: env.SIGNED != 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="1.1.$(git rev-list --count HEAD)"
+          APK="$RUNNER_TEMP/SoundPilot-$VERSION-unsigned.apk"
+          cp app/build/outputs/apk/release/app-release-unsigned.apk "$APK"
+          gh release delete unsigned-build --yes --cleanup-tag >/dev/null 2>&1 || true
+          gh release create unsigned-build "$APK" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Unsigned build $VERSION (not for installing)" \
+            --notes "Unsigned APK waiting to be signed with the permanent key. Install only the signed releases."
+
+      - name: Remove unsigned pre-release
+        if: env.SIGNED == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete unsigned-build --yes --cleanup-tag >/dev/null 2>&1 || true
 
       - name: Upload reports
         if: failure()
