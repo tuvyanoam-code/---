@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>חברותא</title>
+<meta name="description" content="מוצאים יחד את הזמן הכי טוב ללמוד">
+<meta name="theme-color" content="#FAFAFC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&family=Fredoka:wght@400;500;600&family=Varela+Round&display=swap">
+<style>
+/* Layout: one calm column. An entry screen asks who you are; the app opens on the two clocks and the best shared time, then the week grid, then the other options. */
+:root{
+  --bg:#FAFAFC;
+  --surface:#FFFFFF;
+  --ink:#2A2D3E;
+  --soft:#6D7186;
+  --faint:#A3A6B8;
+  --line:#E8E9F0;
+  --line-2:#F2F3F7;
+  --tuvia:#4A78F0;
+  --tuvia-soft:#DFE7FF;
+  --shifra:#EF5F86;
+  --shifra-soft:#FFE0E8;
+  --sun:#FFC83D;
+  --sun-soft:#FFF4D6;
+  --sun-ink:#8A6200;
+  --f-head:"Fredoka","Varela Round","Rubik","Arial Hebrew",sans-serif;
+  --f-body:"Assistant","Rubik","Arial Hebrew",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,select{font:inherit;color:inherit}
+h1,h2,h3,p,ul,ol{margin:0}
+ul,ol{list-style:none;padding:0}
+[hidden]{display:none!important}
+.tm{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.a{--c:var(--tuvia);--c-soft:var(--tuvia-soft)}
+.b{--c:var(--shifra);--c-soft:var(--shifra-soft)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+
+/* ---------- entry ---------- */
+.entry{min-height:100vh;min-height:100svh;display:flex;align-items:center;justify-content:center;padding-block:48px}
+.entry-in{width:100%;max-width:540px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.bsd{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:max(20px,env(safe-area-inset-right,0px));font-size:13px;color:var(--faint)}
+.logo{font-family:var(--f-head);font-weight:500;font-size:clamp(60px,15vw,104px);line-height:1;letter-spacing:.01em}
+.lead{font-size:clamp(17px,4.4vw,20px);font-weight:300;color:var(--soft)}
+.ask{font-family:var(--f-head);font-weight:400;font-size:21px;margin-top:34px}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;margin-top:6px}
+.who{border:0;border-radius:24px;background:var(--c-soft);padding:28px 12px 22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .25s cubic-bezier(.3,.7,.3,1.3),background-color .2s,color .2s;animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.who.b{animation-delay:.08s}
+.who:hover{transform:translateY(-4px);background:var(--c);color:#fff}
+.who:active{transform:translateY(0) scale(.98)}
+.who-hi{font-size:16px;font-weight:300}
+.who-n{font-family:var(--f-head);font-weight:500;font-size:clamp(25px,6.6vw,32px);line-height:1.15}
+.who-t{font-size:14px;color:var(--soft);margin-top:6px;transition:color .2s}
+.who:hover .who-t{color:rgba(255,255,255,.85)}
+.entry-note{font-size:13.5px;color:var(--faint);margin-top:14px}
+@keyframes rise{from{transform:translateY(10px);opacity:.4}to{transform:none;opacity:1}}
+
+/* ---------- app top ---------- */
+.top{display:flex;align-items:center;gap:14px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:8px}
+.top .mark{font-family:var(--f-head);font-weight:500;font-size:24px}
+.top .hello{margin-inline-start:auto;color:var(--soft);font-size:15px}
+.top .hello b{color:var(--c);font-weight:600}
+.linkbtn{background:none;border:0;padding:4px 2px;color:var(--soft);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px;cursor:pointer;font-size:14.5px}
+.linkbtn:hover{color:var(--ink);text-decoration-color:currentColor}
+
+.clocks{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;padding-block:18px 22px}
+.clk{display:flex;flex-direction:column;min-width:0}
+.clk.b{align-items:flex-end;text-align:end}
+.clk .n{font-size:14.5px;font-weight:600;color:var(--c)}
+.clk .t{font-family:var(--f-head);font-weight:400;font-size:clamp(36px,9vw,52px);line-height:1.05}
+.clk .p{font-size:14px;color:var(--soft)}
+.diff{font-size:13px;color:var(--soft);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px;white-space:nowrap}
+
+/* ---------- best ---------- */
+.best{background:var(--sun-soft);border-radius:28px;padding:28px clamp(16px,4vw,34px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.best.pop{animation:pop .5s cubic-bezier(.3,.7,.3,1.4)}
+@keyframes pop{40%{transform:scale(1.025)}}
+.best .k{font-size:14.5px;font-weight:600;color:var(--sun-ink)}
+.best .day{font-family:var(--f-head);font-weight:500;font-size:clamp(34px,8vw,48px);line-height:1.1}
+.best .date{font-size:15px;color:var(--soft)}
+.best .times{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:470px;margin-top:12px}
+.bt{background:var(--surface);border-radius:18px;padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;min-width:0}
+.bt .w{font-size:13.5px;font-weight:600;color:var(--c)}
+.bt .tm{font-family:var(--f-head);font-weight:500;font-size:clamp(21px,5.4vw,30px);line-height:1.25}
+.bt .tag{font-size:12.5px;color:var(--soft)}
+.best .why{font-size:14.5px;color:var(--soft);max-width:46ch;margin-top:6px;text-wrap:balance}
+.best .empty-t{font-family:var(--f-head);font-weight:500;font-size:clamp(24px,6vw,32px);line-height:1.2;text-wrap:balance}
+.best .empty-d{color:var(--soft);max-width:46ch;text-wrap:balance}
+.btn-main{border:0;border-radius:999px;background:var(--ink);color:#fff;padding:12px 30px;font-weight:600;font-size:16.5px;cursor:pointer;margin-top:10px;transition:transform .2s}
+.btn-main:hover{transform:translateY(-2px)}
+.btn-line{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:6px 16px;font-weight:600;font-size:14.5px;cursor:pointer;white-space:nowrap}
+.btn-line:hover{background:var(--ink);color:#fff}
+.btn-quiet{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 16px;font-size:14.5px;color:var(--soft);cursor:pointer}
+.btn-quiet:hover{border-color:var(--ink);color:var(--ink)}
+.armed{background:var(--shifra)!important;border-color:var(--shifra)!important;color:#fff!important}
+button[disabled]{opacity:.45;cursor:not-allowed;transform:none!important}
+
+/* ---------- sections ---------- */
+.sec{padding-top:48px;display:flex;flex-direction:column;gap:14px}
+.sec h2{font-family:var(--f-head);font-weight:500;font-size:27px;line-height:1.2}
+.sec .sub{color:var(--soft);font-size:15px}
+.sets{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:14.5px;color:var(--soft)}
+.sets label{display:inline-flex;align-items:center;gap:8px}
+.sets select{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;max-width:62vw}
+.note{background:var(--sun-soft);border-radius:16px;padding:12px 16px;font-size:14.5px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+
+.brushes{display:flex;flex-wrap:wrap;gap:8px}
+.brush{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px 7px 12px;cursor:pointer;font-size:15px}
+.brush[aria-pressed="true"]{border-color:var(--ink);font-weight:600}
+.sw{display:inline-block;width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface)}
+.sw[data-l="3"]{background:var(--c);border-color:var(--c)}
+.sw[data-l="2"]{background:var(--c-soft);border-color:var(--c-soft)}
+.sw[data-l="1"]{background:repeating-linear-gradient(135deg,var(--c) 0 2px,transparent 2px 6px),var(--surface);border-color:var(--c-soft)}
+
+/* ---------- grid ---------- */
+.grid-box{border:1px solid var(--line);border-radius:20px;background:var(--surface);overflow:auto;max-height:min(66vh,620px);overscroll-behavior:contain}
+.grid{display:grid;grid-template-columns:48px repeat(7,minmax(0,1fr));grid-template-rows:50px;grid-auto-rows:22px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.grid:focus{outline:none}
+.grid:focus-visible{box-shadow:inset 0 0 0 3px var(--sun)}
+.grid.ta{--c:var(--tuvia);--c-soft:var(--tuvia-soft);--o:var(--shifra)}
+.grid.tb{--c:var(--shifra);--c-soft:var(--shifra-soft);--o:var(--tuvia)}
+.gh{position:sticky;top:0;z-index:3;background:var(--surface);border-bottom:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.gh b{font-family:var(--f-head);font-weight:500;font-size:17px}
+.gh span{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.gh.today::after{content:"";position:absolute;bottom:-1px;left:24%;right:24%;height:3px;border-radius:3px;background:var(--sun)}
+.tl{position:relative;font-size:11px;color:var(--faint);text-align:center;font-variant-numeric:tabular-nums}
+.tl span{position:relative;top:-8px;background:var(--surface);padding-inline:2px}
+.cell{position:relative;border-top:1px solid var(--line-2);border-inline-start:1px solid var(--line-2);cursor:cell}
+.cell.hr{border-top-color:var(--line)}
+.cell[data-m="3"]{background:var(--c)}
+.cell[data-m="2"]{background:var(--c-soft)}
+.cell[data-m="1"]{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c) 55%,transparent) 0 2px,transparent 2px 6px)}
+.cell::after{content:"";position:absolute;top:0;bottom:0;left:0;width:5px;pointer-events:none}
+.cell[data-o="3"]::after{background:var(--o)}
+.cell[data-o="2"]::after{background:color-mix(in srgb,var(--o) 40%,transparent)}
+.cell[data-o="1"]::after{background:repeating-linear-gradient(180deg,color-mix(in srgb,var(--o) 70%,transparent) 0 2px,transparent 2px 5px)}
+.cell[data-p]{--fw:2px;--fc:#E0A400}
+.cell[data-c]{--fw:3px;--fc:var(--ink)}
+.cell[data-p="m"],.cell[data-c="m"]{box-shadow:inset var(--fw) 0 0 var(--fc),inset calc(var(--fw)*-1) 0 0 var(--fc)}
+.cell[data-p="s"],.cell[data-c="s"]{box-shadow:inset var(--fw) 0 0 var(--fc),inset calc(var(--fw)*-1) 0 0 var(--fc),inset 0 var(--fw) 0 var(--fc)}
+.cell[data-p="e"],.cell[data-c="e"]{box-shadow:inset var(--fw) 0 0 var(--fc),inset calc(var(--fw)*-1) 0 0 var(--fc),inset 0 calc(var(--fw)*-1) 0 var(--fc)}
+.cell[data-p="se"],.cell[data-c="se"]{box-shadow:inset 0 0 0 var(--fw) var(--fc)}
+.cell.now::before{content:"";position:absolute;left:0;right:0;top:var(--nowp,0);height:2px;background:var(--ink);opacity:.55;z-index:1;pointer-events:none}
+.cell.kf{outline:2px solid var(--ink);outline-offset:-2px;z-index:2}
+.grid.locked .cell{cursor:default}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.lg{display:inline-block;width:18px;height:14px;border-radius:4px;background:var(--surface);border:1px solid var(--line);position:relative;overflow:hidden}
+.lg.o::after{content:"";position:absolute;top:0;bottom:0;left:0;width:5px;background:var(--o)}
+.lg.p{border:2px solid #E0A400}
+.lg.c{border:3px solid var(--ink)}
+.hint{font-size:13.5px;color:var(--soft)}
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:14.5px;color:var(--soft)}
+.tools select{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px}
+
+/* ---------- lists ---------- */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.item.set{background:var(--sun-soft);border-color:var(--sun-soft)}
+.item.fresh{animation:pop .5s cubic-bezier(.3,.7,.3,1.4)}
+.i-day{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.i-day b{font-family:var(--f-head);font-weight:500;font-size:19px}
+.i-day span{font-size:13.5px;color:var(--soft)}
+.i-day em{font-style:normal;font-size:13px;font-weight:600;color:var(--sun-ink)}
+.i-times{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 20px;font-size:14.5px}
+.i-times > span{display:inline-flex;gap:7px;align-items:baseline}
+.i-times .n{color:var(--c);font-weight:600}
+.i-times .tm{font-family:var(--f-head);font-weight:500;font-size:17px}
+.i-times .tag{font-size:12.5px;color:var(--soft)}
+.i-meta{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:13px;color:var(--soft)}
+.score{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--ink)}
+.score i{display:inline-block;width:52px;height:6px;border-radius:6px;background:var(--line-2);position:relative;overflow:hidden}
+.score i::after{content:"";position:absolute;top:0;bottom:0;right:0;width:calc(var(--s) * 100%);background:var(--sun);border-radius:6px}
+.empty{color:var(--soft);font-size:15px}
+
+.how{margin-top:48px;border-top:1px solid var(--line);padding-top:16px;font-size:14.5px;color:var(--soft)}
+.how summary{cursor:pointer;font-family:var(--f-head);font-weight:500;font-size:18px;color:var(--ink)}
+.how p{margin-top:8px;max-width:62ch}
+.foot{padding-block:22px calc(36px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--faint);display:flex;flex-wrap:wrap;gap:6px 14px}
+.foot .warn{color:var(--shifra)}
+.toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-weight:600;font-size:15px;z-index:20;max-width:calc(100% - 40px);text-align:center;animation:rise .3s ease-out}
+
+@media (max-width:560px){
+  .grid{grid-template-columns:40px repeat(7,minmax(0,1fr));grid-auto-rows:25px}
+  .gh b{font-size:15px}
+  .best{border-radius:24px}
+  .bt{border-radius:14px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<section class="entry" id="entry">
+  <span class="bsd">בס״ד</span>
+  <div class="entry-in wrap">
+    <h1 class="logo">חברותא</h1>
+    <p class="lead">מוצאים יחד את הזמן הכי טוב ללמוד</p>
+    <p class="ask">מי נכנס?</p>
+    <div class="pick">
+      <button type="button" class="who a" data-side="a">
+        <span class="who-hi">אני</span>
+        <span class="who-n">טוביה נעם</span>
+        <span class="who-t" id="entryA"></span>
+      </button>
+      <button type="button" class="who b" data-side="b">
+        <span class="who-hi">אני</span>
+        <span class="who-n">שפרה</span>
+        <span class="who-t" id="entryB"></span>
+      </button>
+    </div>
+    <p class="entry-note">המכשיר יזכור את הבחירה. אפשר להחליף בכל רגע.</p>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <div class="wrap">
+    <header class="top">
+      <span class="mark">חברותא</span>
+      <span class="hello" id="hello"></span>
+      <button type="button" class="linkbtn" id="switchBtn">החלפה</button>
+    </header>
+
+    <div class="clocks">
+      <div class="clk a" id="clkA"><span class="n">טוביה נעם</span><span class="t tm"></span><span class="p"></span></div>
+      <span class="diff" id="diff"></span>
+      <div class="clk b" id="clkB"><span class="n">שפרה</span><span class="t tm"></span><span class="p"></span></div>
+    </div>
+
+    <section class="best" id="best" aria-live="polite"></section>
+
+    <section class="sec" id="sessWrap" hidden>
+      <h2>קבענו</h2>
+      <ul class="list" id="sessions"></ul>
+    </section>
+
+    <section class="sec" aria-labelledby="markTitle">
+      <h2 id="markTitle"></h2>
+      <p class="sub" id="markSub"></p>
+      <div class="sets">
+        <label>אני נמצא/ת ב־ <select id="myTz"></select></label>
+        <label>אורך הלימוד <select id="dur"></select></label>
+      </div>
+      <div class="note" id="travel" hidden></div>
+      <div class="brushes" id="brushes" role="group" aria-label="סוג הסימון">
+        <button type="button" class="brush" data-l="3" aria-pressed="true"><span class="sw" data-l="3"></span>הכי מתאים</button>
+        <button type="button" class="brush" data-l="2" aria-pressed="false"><span class="sw" data-l="2"></span>אפשרי</button>
+        <button type="button" class="brush" data-l="1" aria-pressed="false"><span class="sw" data-l="1"></span>בלית ברירה</button>
+        <button type="button" class="brush" data-l="0" aria-pressed="false"><span class="sw" data-l="0"></span>מחיקה</button>
+      </div>
+      <div class="grid-box" id="gridBox">
+        <div class="grid ta" id="grid" tabindex="0" aria-label="טבלת השבוע. חיצים לתנועה, רווח לסימון, ספרות 1 עד 3 לבחירת סוג, 0 למחיקה."></div>
+      </div>
+      <p class="sr" aria-live="polite" id="cellSay"></p>
+      <div class="legend" id="legend">
+        <span><i class="lg o"></i><span id="lgOther"></span></span>
+        <span><i class="lg p"></i>ההצעה הכי טובה</span>
+        <span><i class="lg c"></i>זמן שקבעתם</span>
+      </div>
+      <p class="hint">גוררים כדי לסמן כמה ימים ושעות בבת אחת. בטלפון: הקשה מסמנת חצי שעה, לחיצה ארוכה ואז גרירה מסמנת טווח. לחיצה על משבצת שכבר מסומנת באותו סוג מוחקת אותה.</p>
+      <div class="tools">
+        <span>להעתיק את</span>
+        <select id="copyFrom" aria-label="מאיזה יום"></select>
+        <span>אל</span>
+        <select id="copyTo" aria-label="לאיזה ימים"></select>
+        <button type="button" class="btn-line" id="copyBtn">העתקה</button>
+        <button type="button" class="btn-quiet" id="clearBtn">ניקוי הכל</button>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>עוד אפשרויות השבוע</h2>
+      <p class="sub">הזמן הכי טוב בכל יום, מהטוב ביותר</p>
+      <ol class="list" id="opts"></ol>
+    </section>
+
+    <details class="how">
+      <summary>איך זה מחושב?</summary>
+      <p>כל חצי שעה מקבלת ציון מכל אחד מכם: הכי מתאים 3, אפשרי 2, בלית ברירה 1. מכפילים את שני הציונים ולוקחים ממוצע על כל זמן הלימוד, כך שהמקסימום הוא 9.</p>
+      <p>לכן זמן ששניכם סימנתם "אפשרי" (2×2=4) עדיף על זמן שמתאים מאוד לאחד ו"בלית ברירה" לשני (3×1=3). בתיקו, הזמן המוקדם יותר מנצח.</p>
+      <p>כל אחד מסמן לפי השעון במקום שבו הוא נמצא. ההמרה בין אזורי הזמן, כולל שעון קיץ וחורף, מחושבת לפי התאריכים האמיתיים של השבוע הקרוב.</p>
+    </details>
+    <footer class="foot"><span id="sync"></span></footer>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/*
+  שיתוף בין המכשירים: כתובת של Firebase Realtime Database.
+  דוגמה: "https://chavruta-12345-default-rtdb.firebaseio.com"
+  כל עוד הכתובת ריקה, הנתונים נשמרים רק בדפדפן שפתח את הדף.
+*/
+var DB_URL = "";
+
+(function(){
+'use strict';
+function $(s){return document.querySelector(s)}
+
+var SLOTS=48, STEP=1800000, Q=900000, DAY=86400000;
+var EMPTY_ROW=new Array(SLOTS+1).join('0');
+var LEVEL_NAME={3:'הכי מתאים',2:'אפשרי',1:'בלית ברירה',0:'לא פנוי'};
+var DAY_SHORT=['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'];
+var DAY_LONG=['יום ראשון','יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','שבת'];
+var GREG=['בינואר','בפברואר','במרץ','באפריל','במאי','ביוני','ביולי','באוגוסט','בספטמבר','באוקטובר','בנובמבר','בדצמבר'];
+var HEB_MONTH={'Tishri':'תשרי','Tishrei':'תשרי','Heshvan':'חשון','Cheshvan':'חשון','Marcheshvan':'חשון','Kislev':'כסלו','Tevet':'טבת','Teveth':'טבת','Shevat':'שבט','Shvat':'שבט','Adar I':'אדר א׳','Adar II':'אדר ב׳','Adar':'אדר','Nisan':'ניסן','Iyar':'אייר','Iyyar':'אייר','Sivan':'סיון','Tamuz':'תמוז','Tammuz':'תמוז','Av':'אב','Elul':'אלול'};
+var DURS=[[30,'חצי שעה'],[45,'45 דקות'],[60,'שעה'],[90,'שעה וחצי'],[120,'שעתיים']];
+var ZONES=[
+  ['America/New_York','ניו יורק'],['America/Chicago','שיקגו'],['America/Denver','דנוור'],['America/Phoenix','פיניקס'],
+  ['America/Los_Angeles','לוס אנג׳לס'],['America/Toronto','טורונטו'],['America/Montreal','מונטריאול'],['Asia/Jerusalem','ירושלים'],
+  ['Europe/London','לונדון'],['Europe/Paris','פריז'],['Europe/Brussels','בריסל ואנטוורפן'],['Europe/Zurich','ציריך'],
+  ['America/Sao_Paulo','סאו פאולו'],['America/Argentina/Buenos_Aires','בואנוס איירס'],['America/Mexico_City','מקסיקו סיטי'],
+  ['Africa/Johannesburg','יוהנסבורג'],['Australia/Melbourne','מלבורן'],['Australia/Sydney','סידני']
+];
+var SIDES={
+  a:{g:'m',name:'טוביה נעם',short:'טוביה',defTz:'America/New_York'},
+  b:{g:'f',name:'שפרה',short:'שפרה',defTz:'Asia/Jerusalem'}
+};
+function other(s){return s==='a'?'b':'a'}
+
+var state={people:{a:emptyPerson(),b:emptyPerson()},settings:{dur:60},sessions:[],me:null,brush:3};
+var mode=DB_URL?'connecting':'local', loaded=!DB_URL, tree={}, lastRes=null, drag=null, focusCell={w:0,i:18}, freshId=null;
+
+/* ---------- helpers ---------- */
+function pad(n){return (n<10?'0':'')+n}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function lsGet(k){try{return window.localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{window.localStorage.setItem(k,v)}catch(e){}}
+var tzOk={};
+function validTz(tz){
+  if(!tz||typeof tz!=='string') return null;
+  if(tz in tzOk) return tzOk[tz];
+  var ok=null; try{new Intl.DateTimeFormat('en-US',{timeZone:tz}); ok=tz;}catch(e){}
+  tzOk[tz]=ok; return ok;
+}
+var BROWSER_TZ=validTz((function(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return null}})());
+var fmtCache={}, WD={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+function zparts(tz,ms){
+  var f=fmtCache[tz];
+  if(!f) f=fmtCache[tz]=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',weekday:'short'});
+  var o={}, ps=f.formatToParts(new Date(ms));
+  for(var i=0;i<ps.length;i++) o[ps[i].type]=ps[i].value;
+  var h=+o.hour; if(h===24) h=0;
+  return {y:+o.year,m:+o.month,d:+o.day,h:h,mi:+o.minute,s:+o.second,wd:WD[o.weekday]};
+}
+function offsetMin(tz,ms){var p=zparts(tz,ms);return (Date.UTC(p.y,p.m-1,p.d,p.h,p.mi,p.s)-Math.floor(ms/1000)*1000)/60000}
+function zonedToUtc(tz,y,m,d,h,mi){
+  var g=Date.UTC(y,m-1,d,h,mi), o=offsetMin(tz,g), u=g-o*60000, o2=offsetMin(tz,u);
+  if(o2!==o) u=g-o2*60000;
+  return u;
+}
+function addDays(y,m,d,k){var t=new Date(Date.UTC(y,m-1,d+k));return {y:t.getUTCFullYear(),m:t.getUTCMonth()+1,d:t.getUTCDate(),wd:t.getUTCDay()}}
+function hm(tz,ms){var p=zparts(tz,ms);return pad(p.h)+':'+pad(p.mi)}
+function dateKey(tz,ms){var p=zparts(tz,ms);return p.y*10000+p.m*100+p.d}
+function rangeStr(tz,s,e){return hm(tz,s)+'–'+hm(tz,e)}
+function gem(n){
+  var H=['','ק','ר','ש','ת','תק','תר','תש','תת','תתק'],T=['','י','כ','ל','מ','נ','ס','ע','פ','צ'],O=['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
+  var s=H[Math.floor(n/100)]||'', r=n%100;
+  s+= r===15?'טו':r===16?'טז':T[Math.floor(r/10)]+O[r%10];
+  return s.length===1? s+'׳' : s.slice(0,-1)+'״'+s.slice(-1);
+}
+var hebCache={};
+function hebDate(tz,ms){
+  var f=hebCache[tz];
+  if(f===undefined){try{f=new Intl.DateTimeFormat('en-u-ca-hebrew',{timeZone:tz,day:'numeric',month:'long'})}catch(e){f=null} hebCache[tz]=f;}
+  if(!f) return '';
+  var o={}, ps=f.formatToParts(new Date(ms));
+  for(var i=0;i<ps.length;i++) o[ps[i].type]=ps[i].value;
+  var d=parseInt(o.day,10);
+  if(!d||!HEB_MONTH[o.month]) return '';
+  return gem(d)+' ב'+HEB_MONTH[o.month];
+}
+
+function emptyPerson(){return {tz:'',avail:{}}}
+function normPerson(d){
+  var out=emptyPerson();
+  if(!d||typeof d!=='object') return out;
+  if(typeof d.tz==='string') out.tz=d.tz;
+  var av=d.avail;
+  if(av&&typeof av==='object') for(var w=0;w<7;w++){var r=av['d'+w]; if(typeof r==='string'&&/^[0-3]{48}$/.test(r)&&r!==EMPTY_ROW) out.avail[w]=r;}
+  return out;
+}
+function normSettings(d){var dur=d&&+d.dur;return {dur:DURS.some(function(x){return x[0]===dur})?dur:60}}
+function normSession(id,d){
+  if(!d||typeof d!=='object'||!/^s\d+$/.test(id)) return null;
+  var s=+d.start, du=+d.dur;
+  if(!isFinite(s)||!isFinite(du)||du<15||du>480) return null;
+  return {id:id,start:s,dur:du,by:d.by==='a'||d.by==='b'?d.by:''};
+}
+function serialAvail(av){var o={};for(var w=0;w<7;w++) if(av[w]&&av[w]!==EMPTY_ROW) o['d'+w]=av[w];return o}
+
+function tzSet(side){return !!validTz(state.people[side].tz)}
+function tzOf(side){return validTz(state.people[side].tz)||SIDES[side].defTz}
+function nameOf(side){return SIDES[side].name}
+function cityOf(tz){for(var i=0;i<ZONES.length;i++) if(ZONES[i][0]===tz) return ZONES[i][1]; return tz.split('/').pop().replace(/_/g,' ')}
+function row(side,w){return state.people[side].avail[w]||EMPTY_ROW}
+function hoursOf(side){var n=0;for(var w=0;w<7;w++){var r=row(side,w);for(var i=0;i<SLOTS;i++) if(r.charAt(i)!=='0') n++;}return n/2}
+function durLabel(d){for(var i=0;i<DURS.length;i++) if(DURS[i][0]===d) return DURS[i][1]; return d+' דקות'}
+function verb(side,m,f){return SIDES[side].g==='f'?f:m}
+
+/* ---------- the math ---------- */
+function quarterMap(side,fromMs,toMs){
+  var tz=tzOf(side), map=new Map(), s=zparts(tz,fromMs-DAY), days=Math.ceil((toMs-fromMs)/DAY)+3;
+  for(var k=0;k<days;k++){
+    var dt=addDays(s.y,s.m,s.d,k), r=state.people[side].avail[dt.wd];
+    if(!r) continue;
+    for(var i=0;i<SLOTS;i++){
+      var lv=+r.charAt(i); if(!lv) continue;
+      var q=Math.floor(zonedToUtc(tz,dt.y,dt.m,dt.d,i>>1,(i&1)*30)/Q);
+      map.set(q,lv); map.set(q+1,lv);
+    }
+  }
+  return map;
+}
+function upcoming(now){
+  return state.sessions.filter(function(x){return x.start+x.dur*60000>now}).sort(function(a,b){return a.start-b.start});
+}
+function compute(){
+  var viewer=state.me||'a', vtz=tzOf(viewer), now=Date.now();
+  var start=Math.ceil(now/STEP)*STEP, t=zparts(vtz,now), e7=addDays(t.y,t.m,t.d,7);
+  var end=zonedToUtc(vtz,e7.y,e7.m,e7.d,0,0), from=zonedToUtc(vtz,t.y,t.m,t.d,0,0);
+  var A=quarterMap('a',from,end), B=quarterMap('b',from,end);
+  var durMs=state.settings.dur*60000, nq=Math.round(durMs/Q), sess=upcoming(now), byDay=new Map();
+  var bookedDays={}; sess.forEach(function(x){bookedDays[dateKey(vtz,x.start)]=true});
+  for(var s=start;s+durMs<=end;s+=STEP){
+    if(bookedDays[dateKey(vtz,s)]) continue;
+    var q0=Math.floor(s/Q), sum=0, ok=true, la=[], lb=[];
+    for(var j=0;j<nq;j++){
+      var a=A.get(q0+j), b=B.get(q0+j);
+      if(!a||!b){ok=false;break}
+      sum+=a*b; la.push(a); lb.push(b);
+    }
+    if(!ok) continue;
+    var e=s+durMs, clash=false;
+    for(var k=0;k<sess.length;k++){var x=sess[k]; if(s<x.start+x.dur*60000&&x.start<e){clash=true;break}}
+    if(clash) continue;
+    var key=dateKey(vtz,s), cur=byDay.get(key), score=sum/nq;
+    if(!cur||score>cur.score+1e-9) byDay.set(key,{start:s,end:e,score:score,la:la,lb:lb});
+  }
+  byDay.forEach(function(c){
+    var qs=Math.floor(c.start/Q), qe=Math.floor(c.end/Q);
+    while(A.get(qs-1)&&B.get(qs-1)&&(qs-1)*Q>=start) qs--;
+    while(A.get(qe)&&B.get(qe)&&qe*Q<end) qe++;
+    c.winStart=qs*Q; c.winEnd=qe*Q;
+  });
+  var days=Array.from(byDay.values()).sort(function(x,y){return (y.score-x.score)||(x.start-y.start)});
+  return {viewer:viewer,vtz:vtz,now:now,A:A,B:B,days:days,best:days[0]||null,sess:sess};
+}
+function scoreWord(sc){if(sc>=9) return 'מושלם';if(sc>=6) return 'טוב מאוד';if(sc>=4) return 'טוב';if(sc>=2) return 'סביר';return 'בלית ברירה'}
+function levelsText(arr){
+  var mx=Math.max.apply(null,arr), mn=Math.min.apply(null,arr);
+  return mx===mn? LEVEL_NAME[mx] : LEVEL_NAME[mx]+', בחלק מהזמן '+LEVEL_NAME[mn];
+}
+function whyText(c){
+  if(c.score>=9) return 'שניכם סימנתם "הכי מתאים" לכל הזמן הזה.';
+  return SIDES.a.short+': '+levelsText(c.la)+' · '+SIDES.b.short+': '+levelsText(c.lb);
+}
+function sideTime(side,s,e,viewerKey){
+  var tz=tzOf(side);
+  return {tm:rangeStr(tz,s,e),tag:dateKey(tz,s)!==viewerKey?DAY_LONG[zparts(tz,s).wd]:''};
+}
+function relDay(vtz,ms,now){
+  var a=zparts(vtz,now), b=zparts(vtz,ms), diff=Math.round((Date.UTC(b.y,b.m-1,b.d)-Date.UTC(a.y,a.m-1,a.d))/DAY);
+  if(diff===0) return 'היום'; if(diff===1) return 'מחר'; if(diff===2) return 'מחרתיים';
+  return 'בעוד '+diff+' ימים';
+}
+function countdown(vtz,s,e,now){
+  if(s<=now&&now<e) return 'עכשיו';
+  var mins=Math.round((s-now)/60000);
+  if(mins<60) return 'בעוד '+mins+' דקות';
+  var h=Math.round(mins/60);
+  if(h<=12) return h===1?'בעוד שעה':h===2?'בעוד שעתיים':'בעוד '+h+' שעות';
+  return relDay(vtz,s,now);
+}
+function dayLine(vtz,ms){var p=zparts(vtz,ms), heb=hebDate(vtz,ms);return p.d+' '+GREG[p.m-1]+(heb?' · '+heb:'')}
+function fmtScore(s){return String(Math.round(s*10)/10)}
+
+/* ---------- rendering ---------- */
+var rafPending=false;
+function scheduleRender(){if(rafPending) return; rafPending=true; requestAnimationFrame(function(){rafPending=false; render();});}
+function render(){
+  var now=Date.now();
+  $('#entryA').textContent=hm(tzOf('a'),now)+' ב'+cityOf(tzOf('a'));
+  $('#entryB').textContent=hm(tzOf('b'),now)+' ב'+cityOf(tzOf('b'));
+  $('#entry').hidden=!!state.me; $('#app').hidden=!state.me;
+  renderSync();
+  if(!state.me) return;
+  var res=compute(); lastRes=res;
+  renderTop(res); renderBest(res); renderControls(res); renderGrid(res); renderSessions(res); renderOptions(res);
+}
+function renderTop(res){
+  var me=state.me, h=$('#hello');
+  h.className='hello '+me; h.innerHTML='שלום, <b>'+esc(SIDES[me].short)+'</b>';
+  ['a','b'].forEach(function(s){
+    var el=$(s==='a'?'#clkA':'#clkB'), tz=tzOf(s), p=zparts(tz,res.now);
+    el.querySelector('.t').textContent=pad(p.h)+':'+pad(p.mi);
+    el.querySelector('.p').textContent=cityOf(tz)+' · '+DAY_LONG[p.wd];
+  });
+  var d=Math.abs(offsetMin(tzOf('b'),res.now)-offsetMin(tzOf('a'),res.now))/60;
+  $('#diff').textContent= d===0?'אותה שעה': d===1?'שעה הפרש': d===2?'שעתיים הפרש': (Math.round(d*100)/100)+' שעות הפרש';
+}
+function bt(side,t){
+  return '<div class="bt '+side+'"><span class="w">אצל '+esc(SIDES[side].short)+'</span><span class="tm">'+t.tm+'</span>'+(t.tag?'<span class="tag">'+t.tag+'</span>':'')+'</div>';
+}
+function renderBest(res){
+  var el=$('#best'), c=res.best, vtz=res.vtz;
+  if(!c){
+    var ha=hoursOf('a'), hb=hoursOf('b'), t, d;
+    if(!loaded){ t='טוען…'; d='מביא את הזמנים של שניכם.'; }
+    else if(!ha&&!hb){ t='עוד לא סומנו זמנים'; d='כל אחד מסמן למטה מתי הוא פנוי, לפי השעון שלו. ההצעה הכי טובה תופיע כאן.'; }
+    else if(!ha||!hb){ var m=!ha?'a':'b'; t=SIDES[m].short+' '+verb(m,'עוד לא סימן','עוד לא סימנה')+' זמנים'; d='ברגע שיהיו סימונים משני הצדדים, ההצעה תופיע כאן.'; }
+    else { t='עוד אין זמן משותף השבוע'; d='אין '+durLabel(state.settings.dur)+' רצופה ששניכם פנויים בה בשבעת הימים הקרובים'+(res.sess.length?', מלבד מה שכבר קבעתם':'')+'. אפשר לסמן עוד זמנים "בלית ברירה" או לקצר את הלימוד.'; }
+    el.innerHTML='<p class="k">הזמן הכי טוב ללמוד יחד</p><p class="empty-t">'+esc(t)+'</p><p class="empty-d">'+esc(d)+'</p>';
+    return;
+  }
+  var key=dateKey(vtz,c.start), p=zparts(vtz,c.start);
+  el.innerHTML=
+    '<p class="k">הזמן הכי טוב ללמוד יחד · '+esc(relDay(vtz,c.start,res.now))+'</p>'+
+    '<h2 class="day">'+DAY_LONG[p.wd]+'</h2>'+
+    '<p class="date">'+esc(dayLine(vtz,c.start))+'</p>'+
+    '<div class="times">'+bt('a',sideTime('a',c.start,c.end,key))+bt('b',sideTime('b',c.start,c.end,key))+'</div>'+
+    '<p class="why">'+scoreWord(c.score)+' · '+fmtScore(c.score)+' מתוך 9. '+esc(whyText(c))+'</p>'+
+    '<button type="button" class="btn-main" data-act="confirm" data-start="'+c.start+'"'+(canWriteNow()?'':' disabled')+'>קובעים!</button>';
+}
+function renderControls(res){
+  var me=state.me, o=other(me);
+  $('#markTitle').textContent= me==='a'?'מתי אתה פנוי?':'מתי את פנויה?';
+  $('#markSub').textContent='לפי השעון שלך ב'+cityOf(tzOf(me))+'. הסימון חוזר כל שבוע.';
+  var g=$('#grid'); g.classList.toggle('ta',me==='a'); g.classList.toggle('tb',me==='b');
+  g.classList.toggle('locked',!canWriteNow());
+  var br=$('#brushes'); br.classList.toggle('a',me==='a'); br.classList.toggle('b',me==='b');
+  $('#legend').style.setProperty('--o','var(--'+(o==='a'?'tuvia':'shifra')+')');
+  $('#lgOther').textContent='הפס הצר: הזמנים של '+SIDES[o].short+', לפי השעון שלך';
+  var tzSel=$('#myTz'); if(document.activeElement!==tzSel){ ensureTzOption(tzOf(me)); tzSel.value=tzOf(me); }
+  var durSel=$('#dur'); if(document.activeElement!==durSel) durSel.value=String(state.settings.dur);
+  var tr=$('#travel');
+  if(loaded&&BROWSER_TZ&&tzSet(me)&&offsetMin(BROWSER_TZ,res.now)!==offsetMin(tzOf(me),res.now)){
+    tr.hidden=false;
+    tr.innerHTML='<span>השעון במכשיר הזה מראה את השעה ב'+esc(cityOf(BROWSER_TZ))+'. '+verb(me,'עברת','עברת')+' מקום?</span><button type="button" class="btn-line" data-act="usetz">כן, אני ב'+esc(cityOf(BROWSER_TZ))+'</button>';
+  } else tr.hidden=true;
+  document.querySelectorAll('.brush').forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.l===state.brush))});
+}
+
+var cells=[], heads=[], cuKey='', cu=null, cuDates=null;
+function buildGrid(){
+  var g=$('#grid'), frag=document.createDocumentFragment();
+  var corner=document.createElement('div'); corner.className='gh'; frag.appendChild(corner);
+  for(var w=0;w<7;w++){var h=document.createElement('div'); h.className='gh'; h.innerHTML='<b>'+DAY_SHORT[w]+'</b><span></span>'; frag.appendChild(h); heads[w]=h; cells[w]=[];}
+  for(var i=0;i<SLOTS;i++){
+    var tl=document.createElement('div'); tl.className='tl'; if(!(i&1)&&i>0) tl.innerHTML='<span>'+pad(i>>1)+':00</span>'; frag.appendChild(tl);
+    for(var w2=0;w2<7;w2++){
+      var c=document.createElement('div'); c.className='cell'+(i&1?'':' hr'); c.dataset.w=w2; c.dataset.i=i; c.dataset.m='0';
+      frag.appendChild(c); cells[w2][i]=c;
+    }
+  }
+  g.appendChild(frag);
+}
+function cellUtcs(vtz,now){
+  var t=zparts(vtz,now), key=vtz+'|'+t.y+'-'+t.m+'-'+t.d;
+  if(key===cuKey) return;
+  cu=[]; cuDates=[];
+  for(var k=0;k<7;k++){
+    var dt=addDays(t.y,t.m,t.d,k), arr=new Array(SLOTS);
+    cuDates[dt.wd]={m:dt.m,d:dt.d,k:k};
+    for(var i=0;i<SLOTS;i++) arr[i]=zonedToUtc(vtz,dt.y,dt.m,dt.d,i>>1,(i&1)*30);
+    cu[dt.wd]=arr;
+  }
+  cuKey=key;
+}
+function partOf(w,i,inside){
+  if(!inside(cu[w][i])) return null;
+  var up=i>0&&inside(cu[w][i-1]), dn=i<SLOTS-1&&inside(cu[w][i+1]);
+  return (up?'':'s')+(dn?'':'e')||'m';
+}
+function renderMine(){
+  for(var w=0;w<7;w++){var r=row(state.me,w); for(var i=0;i<SLOTS;i++){var c=cells[w][i], v=r.charAt(i); if(c.dataset.m!==v) c.dataset.m=v;}}
+}
+function renderGrid(res){
+  var O=state.me==='a'?res.B:res.A, now=res.now, best=res.best, sess=res.sess;
+  cellUtcs(res.vtz,now); renderMine();
+  function inBest(u){return !!best&&u<best.end&&u+STEP>best.start}
+  function inSess(u){for(var k=0;k<sess.length;k++){var x=sess[k]; if(u<x.start+x.dur*60000&&u+STEP>x.start) return true;} return false}
+  for(var w=0;w<7;w++){
+    var dd=cuDates[w];
+    heads[w].querySelector('span').textContent=dd.d+'.'+dd.m;
+    heads[w].classList.toggle('today',dd.k===0);
+    for(var i=0;i<SLOTS;i++){
+      var c=cells[w][i], u=cu[w][i], o=String(O.get(Math.floor(u/Q))||0);
+      if(c.dataset.o!==o) c.dataset.o=o;
+      var s=partOf(w,i,inSess), p=s?null:partOf(w,i,inBest);
+      if(s) c.dataset.c=s; else delete c.dataset.c;
+      if(p) c.dataset.p=p; else delete c.dataset.p;
+      var isNow=now>=u&&now<u+STEP;
+      c.classList.toggle('now',isNow);
+      if(isNow) c.style.setProperty('--nowp',Math.round((now-u)/STEP*100)+'%');
+    }
+  }
+}
+function iTimes(ta,tb){
+  function one(side,t){return '<span class="'+side+'"><span class="n">'+esc(SIDES[side].short)+'</span><span class="tm">'+t.tm+'</span>'+(t.tag?'<span class="tag">'+t.tag+'</span>':'')+'</span>'}
+  return '<div class="i-times">'+one('a',ta)+one('b',tb)+'</div>';
+}
+function renderSessions(res){
+  var vtz=res.vtz, dis=canWriteNow()?'':' disabled';
+  $('#sessWrap').hidden=!res.sess.length;
+  $('#sessions').innerHTML=res.sess.map(function(x){
+    var e=x.start+x.dur*60000, key=dateKey(vtz,x.start), p=zparts(vtz,x.start);
+    return '<li class="item set'+(x.id===freshId?' fresh':'')+'">'+
+      '<div class="i-day"><b>'+DAY_LONG[p.wd]+'</b><span>'+esc(dayLine(vtz,x.start))+'</span><em>'+esc(countdown(vtz,x.start,e,res.now))+'</em></div>'+
+      '<button type="button" class="btn-quiet" data-act="cancel" data-id="'+esc(x.id)+'"'+dis+'>ביטול</button>'+
+      iTimes(sideTime('a',x.start,e,key),sideTime('b',x.start,e,key))+
+    '</li>';
+  }).join('');
+  freshId=null;
+}
+function renderOptions(res){
+  var ol=$('#opts'), vtz=res.vtz, list=res.days.slice(1,8), dis=canWriteNow()?'':' disabled';
+  if(!res.best){ ol.innerHTML='<li class="empty">כשיהיו זמנים משותפים, כל יום יקבל כאן את הזמן הכי טוב שלו.</li>'; return; }
+  if(!list.length){ ol.innerHTML='<li class="empty">השבוע יש זמן משותף רק ביום אחד, וזה הזמן שלמעלה.</li>'; return; }
+  ol.innerHTML=list.map(function(c){
+    var key=dateKey(vtz,c.start), p=zparts(vtz,c.start);
+    var win=(c.winEnd-c.winStart>c.end-c.start)?'<span>שניכם פנויים <span class="tm">'+rangeStr(vtz,c.winStart,c.winEnd)+'</span> לפי '+esc(cityOf(vtz))+'</span>':'';
+    return '<li class="item">'+
+      '<div class="i-day"><b>'+DAY_LONG[p.wd]+'</b><span>'+esc(dayLine(vtz,c.start))+'</span></div>'+
+      '<button type="button" class="btn-line" data-act="confirm" data-start="'+c.start+'"'+dis+'>קובעים</button>'+
+      iTimes(sideTime('a',c.start,c.end,key),sideTime('b',c.start,c.end,key))+
+      '<div class="i-meta"><span class="score" title="'+esc(whyText(c))+'"><i style="--s:'+(c.score/9).toFixed(3)+'"></i>'+fmtScore(c.score)+' · '+scoreWord(c.score)+'</span>'+win+'</div>'+
+    '</li>';
+  }).join('');
+}
+function renderSync(){
+  var el=$('#sync'), t, warn=false;
+  if(mode==='local') t='הסנכרון בין המכשירים עוד לא מחובר: הסימונים נשמרים רק בדפדפן הזה.';
+  else if(mode==='connecting') t='מתחבר…';
+  else if(mode==='live') t= queue.length?'שומר…':'מסונכרן. כל שינוי מופיע אצל שניכם מיד.';
+  else if(mode==='denied'){ t='אין הרשאה למאגר הנתונים. צריך לבדוק את ההגדרות ב־Firebase.'; warn=true; }
+  else { t='אין חיבור כרגע. מנסה שוב…'; warn=true; }
+  el.textContent=t; el.className=warn?'warn':'';
+}
+var toastTimer=null;
+function toast(msg){var el=$('#toast');el.textContent=msg;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){el.hidden=true},3000)}
+
+/* ---------- storage & sync ---------- */
+var LS_ME='chavruta.me', LS_LOCAL='chavruta.local.v2', LS_CACHE='chavruta.cache.v2';
+function canWriteNow(){return mode==='local'||(loaded&&mode!=='denied')}
+
+function treeFromState(){
+  var t={people:{a:{tz:state.people.a.tz,avail:serialAvail(state.people.a.avail)},b:{tz:state.people.b.tz,avail:serialAvail(state.people.b.avail)}},settings:{dur:state.settings.dur},sessions:{}};
+  state.sessions.forEach(function(x){t.sessions[x.id]={start:x.start,dur:x.dur,by:x.by}});
+  return t;
+}
+function stateFromTree(t,skipMine){
+  t=t&&typeof t==='object'?t:{};
+  var ppl=t.people&&typeof t.people==='object'?t.people:{};
+  ['a','b'].forEach(function(s){ if(skipMine&&s===state.me) return; state.people[s]=normPerson(ppl[s]); });
+  state.settings=normSettings(t.settings);
+  var ss=t.sessions&&typeof t.sessions==='object'?t.sessions:{};
+  state.sessions=Object.keys(ss).map(function(k){return normSession(k,ss[k])}).filter(Boolean);
+}
+function saveLocal(){ lsSet(LS_LOCAL,JSON.stringify(treeFromState())); }
+
+var queue=[], qBusy=false;
+function write(method,path,body){
+  if(mode==='local'){ saveLocal(); return; }
+  queue.push({method:method,path:path,body:body,tries:0}); pump(); renderSync();
+}
+function pump(){
+  if(qBusy||!queue.length) return;
+  qBusy=true;
+  var op=queue[0], init={method:op.method};
+  if(op.body!==undefined) init.body=JSON.stringify(op.body);
+  fetch(DB_URL+'/chavruta/'+op.path+'.json',init).then(function(r){
+    if(!r.ok){ var err=new Error('http '+r.status); err.status=r.status; throw err; }
+    queue.shift(); qBusy=false; pump(); renderSync();
+  }).catch(function(err){
+    qBusy=false;
+    if(err&&err.status&&err.status<500&&err.status!==429){
+      queue.shift(); if(err.status===401||err.status===403){ mode='denied'; }
+      toast('השינוי לא נשמר.'); render(); pump(); return;
+    }
+    op.tries++;
+    if(op.tries===2) toast('אין חיבור. השינויים יישמרו כשהוא יחזור.');
+    setTimeout(pump,Math.min(15000,800*Math.pow(2,op.tries)));
+  });
+}
+function mineBusy(){
+  var pre='people/'+state.me;
+  for(var i=0;i<queue.length;i++) if(queue[i].path.indexOf(pre)===0) return true;
+  return false;
+}
+function applyAt(path,data){
+  var parts=String(path).split('/').filter(Boolean);
+  if(!parts.length){ tree=(data&&typeof data==='object')?data:{}; return; }
+  if(!tree||typeof tree!=='object') tree={};
+  var node=tree;
+  for(var i=0;i<parts.length-1;i++){var k=parts[i]; if(!node[k]||typeof node[k]!=='object') node[k]={}; node=node[k];}
+  var last=parts[parts.length-1];
+  if(data===null) delete node[last]; else node[last]=data;
+}
+var cacheTimer=null;
+function onTree(){
+  var wasLoaded=loaded; loaded=true;
+  stateFromTree(tree, !!state.me && (!!drag||mineBusy()));
+  if(!wasLoaded) autoTz();
+  clearTimeout(cacheTimer); cacheTimer=setTimeout(function(){lsSet(LS_CACHE,JSON.stringify(tree))},800);
+  scheduleRender();
+}
+function connect(){
+  if(!DB_URL){ try{ stateFromTree(JSON.parse(lsGet(LS_LOCAL)||'null')); }catch(e){} return; }
+  try{ var cached=JSON.parse(lsGet(LS_CACHE)||'null'); if(cached){ tree=cached; stateFromTree(tree); } }catch(e){}
+  if(typeof EventSource==='undefined'){ mode='offline'; return; }
+  var es=new EventSource(DB_URL+'/chavruta.json');
+  es.addEventListener('put',function(e){ try{ var m=JSON.parse(e.data); applyAt(m.path,m.data); onTree(); }catch(err){} });
+  es.addEventListener('patch',function(e){ try{ var m=JSON.parse(e.data); for(var k in m.data) applyAt(String(m.path).replace(/\/$/,'')+'/'+k,m.data[k]); onTree(); }catch(err){} });
+  es.addEventListener('cancel',function(){ mode='denied'; es.close(); render(); });
+  es.addEventListener('auth_revoked',function(){ mode='denied'; es.close(); render(); });
+  es.onopen=function(){ mode='live'; renderSync(); pump(); };
+  es.onerror=function(){ if(mode!=='denied'){ mode='offline'; renderSync(); } };
+}
+function autoTz(){
+  var me=state.me;
+  if(me&&canWriteNow()&&!tzSet(me)&&BROWSER_TZ){ state.people[me].tz=BROWSER_TZ; write('PUT','people/'+me+'/tz',BROWSER_TZ); }
+}
+
+/* ---------- interactions ---------- */
+function choose(side){
+  state.me=side; lsSet(LS_ME,side); cuKey='';
+  if(loaded) autoTz();
+  render(); window.scrollTo(0,0);
+  requestAnimationFrame(scrollGridToMorning);
+}
+document.querySelectorAll('.who').forEach(function(b){ b.addEventListener('click',function(){choose(b.dataset.side)}); });
+$('#switchBtn').addEventListener('click',function(){ state.me=null; lsSet(LS_ME,''); render(); window.scrollTo(0,0); });
+$('#myTz').addEventListener('change',function(e){
+  var tz=validTz(e.target.value); if(!tz||!state.me) return;
+  state.people[state.me].tz=tz; write('PUT','people/'+state.me+'/tz',tz); cuKey=''; render();
+});
+$('#dur').addEventListener('change',function(e){
+  state.settings=normSettings({dur:+e.target.value}); write('PUT','settings/dur',state.settings.dur); render();
+});
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]'); if(!b||b.disabled) return;
+  var act=b.dataset.act;
+  if(act==='usetz'&&state.me&&BROWSER_TZ){ state.people[state.me].tz=BROWSER_TZ; write('PUT','people/'+state.me+'/tz',BROWSER_TZ); cuKey=''; render(); toast('עודכן ל'+cityOf(BROWSER_TZ)); }
+  else if(act==='confirm') confirmSession(+b.dataset.start);
+  else if(act==='cancel'){
+    if(b.dataset.armed!=='1'){ b.dataset.armed='1'; b.classList.add('armed'); b.textContent='לבטל?'; setTimeout(function(){ if(b.isConnected){ b.dataset.armed=''; b.classList.remove('armed'); b.textContent='ביטול'; } },4000); return; }
+    var id=b.dataset.id; state.sessions=state.sessions.filter(function(x){return x.id!==id});
+    write('DELETE','sessions/'+id); render();
+  }
+});
+function confirmSession(start){
+  if(!lastRes||!canWriteNow()) return;
+  var c=lastRes.days.filter(function(x){return x.start===start})[0]; if(!c) return;
+  var id='s'+start, s={start:start,dur:Math.round((c.end-c.start)/60000),by:state.me};
+  state.sessions=state.sessions.filter(function(x){return x.id!==id}).concat([{id:id,start:s.start,dur:s.dur,by:s.by}]);
+  freshId=id; write('PUT','sessions/'+id,s);
+  var bst=$('#best'); bst.classList.remove('pop'); void bst.offsetWidth; bst.classList.add('pop');
+  toast('קבענו! לימוד מוצלח');
+  render();
+}
+$('#brushes').addEventListener('click',function(e){ var b=e.target.closest('.brush'); if(!b) return; state.brush=+b.dataset.l; if(lastRes) renderControls(lastRes); });
+
+/* painting */
+function beginPaint(w,i){
+  if(!state.me) return false;
+  if(!canWriteNow()){ toast(loaded?'אין אפשרות לשמור כרגע':'רגע, טוען את הזמנים…'); return false; }
+  var cur=+row(state.me,w).charAt(i);
+  var level=(state.brush!==0&&cur===state.brush)?0:state.brush;
+  var base={}; for(var k in state.people[state.me].avail) base[k]=state.people[state.me].avail[k];
+  drag={aw:w,ai:i,level:level,base:base,last:''};
+  applyRect(w,i); return true;
+}
+function applyRect(w,i){
+  if(!drag) return;
+  var key=w+':'+i; if(key===drag.last) return; drag.last=key;
+  var av={}; for(var k in drag.base) av[k]=drag.base[k];
+  var w0=Math.min(drag.aw,w), w1=Math.max(drag.aw,w), i0=Math.min(drag.ai,i), i1=Math.max(drag.ai,i), ch=String(drag.level);
+  for(var x=w0;x<=w1;x++){
+    var arr=(av[x]||EMPTY_ROW).split('');
+    for(var y=i0;y<=i1;y++) arr[y]=ch;
+    var s=arr.join(''); if(s===EMPTY_ROW) delete av[x]; else av[x]=s;
+  }
+  state.people[state.me].avail=av; renderMine();
+}
+function saveDays(days,before){
+  var me=state.me, body={}, any=false;
+  days.forEach(function(w){ var now=row(me,w), was=before[w]||EMPTY_ROW; if(now!==was){ body['d'+w]= now===EMPTY_ROW?null:now; any=true; } });
+  if(any) write('PATCH','people/'+me+'/avail',body);
+}
+function endPaint(){
+  if(!drag) return;
+  var d=drag; drag=null;
+  saveDays([0,1,2,3,4,5,6],d.base);
+  render();
+}
+function cellFromPoint(x,y){var el=document.elementFromPoint(x,y);return el&&el.closest?el.closest('.cell'):null}
+var grid=$('#grid');
+grid.addEventListener('pointerdown',function(e){
+  if(e.pointerType==='touch'||e.button!==0) return;
+  var c=e.target.closest('.cell'); if(!c) return;
+  e.preventDefault(); grid.focus({preventScroll:true});
+  focusCell={w:+c.dataset.w,i:+c.dataset.i};
+  beginPaint(focusCell.w,focusCell.i);
+});
+document.addEventListener('pointermove',function(e){
+  if(!drag||e.pointerType==='touch') return;
+  var c=cellFromPoint(e.clientX,e.clientY); if(c) applyRect(+c.dataset.w,+c.dataset.i);
+});
+document.addEventListener('pointerup',function(e){ if(e.pointerType!=='touch') endPaint(); });
+window.addEventListener('blur',endPaint);
+var touch=null;
+grid.addEventListener('touchstart',function(e){
+  if(e.touches.length!==1){ if(touch){clearTimeout(touch.timer); touch=null;} return; }
+  var t=e.touches[0], c=t.target.closest?t.target.closest('.cell'):null; if(!c) return;
+  touch={w:+c.dataset.w,i:+c.dataset.i,x:t.clientX,y:t.clientY,painting:false,moved:false};
+  touch.timer=setTimeout(function(){
+    if(!touch||touch.moved) return;
+    if(beginPaint(touch.w,touch.i)){ touch.painting=true; if(navigator.vibrate){try{navigator.vibrate(12)}catch(err){}} }
+  },380);
+},{passive:true});
+grid.addEventListener('touchmove',function(e){
+  if(!touch) return;
+  var t=e.touches[0];
+  if(touch.painting){ e.preventDefault(); var c=cellFromPoint(t.clientX,t.clientY); if(c) applyRect(+c.dataset.w,+c.dataset.i); return; }
+  if(Math.abs(t.clientX-touch.x)>8||Math.abs(t.clientY-touch.y)>8){ touch.moved=true; clearTimeout(touch.timer); }
+},{passive:false});
+grid.addEventListener('touchend',function(e){
+  if(!touch) return;
+  clearTimeout(touch.timer);
+  if(touch.painting) endPaint();
+  else if(!touch.moved){ e.preventDefault(); if(beginPaint(touch.w,touch.i)) endPaint(); }
+  touch=null;
+});
+grid.addEventListener('touchcancel',function(){ if(touch){clearTimeout(touch.timer); if(touch.painting) endPaint(); touch=null;} });
+grid.addEventListener('contextmenu',function(e){ if(e.target.closest('.cell')) e.preventDefault(); });
+
+function showFocus(){
+  document.querySelectorAll('.cell.kf').forEach(function(c){c.classList.remove('kf')});
+  var c=cells[focusCell.w][focusCell.i]; c.classList.add('kf'); c.scrollIntoView({block:'nearest',inline:'nearest'});
+  $('#cellSay').textContent=DAY_LONG[focusCell.w]+' '+pad(focusCell.i>>1)+':'+(focusCell.i&1?'30':'00')+', '+LEVEL_NAME[+row(state.me||'a',focusCell.w).charAt(focusCell.i)];
+}
+grid.addEventListener('focus',function(){ if(grid.matches(':focus-visible')) showFocus(); });
+grid.addEventListener('blur',function(){ document.querySelectorAll('.cell.kf').forEach(function(c){c.classList.remove('kf')}); });
+grid.addEventListener('keydown',function(e){
+  var k=e.key, f=focusCell, moved=true;
+  if(k==='ArrowLeft') f.w=Math.min(6,f.w+1);
+  else if(k==='ArrowRight') f.w=Math.max(0,f.w-1);
+  else if(k==='ArrowUp') f.i=Math.max(0,f.i-1);
+  else if(k==='ArrowDown') f.i=Math.min(SLOTS-1,f.i+1);
+  else moved=false;
+  if(moved){ e.preventDefault(); showFocus(); return; }
+  if(k===' '||k==='Enter'){ e.preventDefault(); if(beginPaint(f.w,f.i)) endPaint(); showFocus(); return; }
+  var map={'1':3,'2':2,'3':1,'0':0};
+  if(k in map){ state.brush=map[k]; if(lastRes) renderControls(lastRes); }
+});
+
+(function(){
+  var from=$('#copyFrom'), to=$('#copyTo');
+  from.innerHTML=DAY_LONG.map(function(d,i){return '<option value="'+i+'">'+d+'</option>'}).join('');
+  to.innerHTML='<option value="wk">ימים א׳ עד ה׳</option><option value="all">כל השבוע</option>'+DAY_LONG.map(function(d,i){return '<option value="'+i+'">'+d+'</option>'}).join('');
+  $('#copyBtn').addEventListener('click',function(){
+    if(!state.me||!canWriteNow()) return;
+    var src=+from.value, r=row(state.me,src), tv=to.value, targets=tv==='wk'?[0,1,2,3,4]:tv==='all'?[0,1,2,3,4,5,6]:[+tv];
+    var before={}, av=state.people[state.me].avail; for(var k in av) before[k]=av[k];
+    targets.forEach(function(w){ if(w===src) return; if(r===EMPTY_ROW) delete av[w]; else av[w]=r; });
+    saveDays(targets,before); render(); toast('הועתק');
+  });
+  var clr=$('#clearBtn');
+  clr.addEventListener('click',function(){
+    if(!state.me||!canWriteNow()) return;
+    if(clr.dataset.armed!=='1'){ clr.dataset.armed='1'; clr.classList.add('armed'); clr.textContent='למחוק את כל הסימונים שלי?'; setTimeout(function(){clr.dataset.armed='';clr.classList.remove('armed');clr.textContent='ניקוי הכל';},4000); return; }
+    clr.dataset.armed=''; clr.classList.remove('armed'); clr.textContent='ניקוי הכל';
+    state.people[state.me].avail={}; write('DELETE','people/'+state.me+'/avail'); render(); toast('הסימונים נמחקו');
+  });
+})();
+
+function offLabel(tz){var o=offsetMin(tz,Date.now()), a=Math.abs(o);return 'UTC'+(o<0?'−':'+')+Math.floor(a/60)+(a%60?':'+pad(a%60):'')}
+function ensureTzOption(tz){
+  var sel=$('#myTz');
+  for(var i=0;i<sel.options.length;i++) if(sel.options[i].value===tz) return;
+  var o=document.createElement('option'); o.value=tz; o.textContent=cityOf(tz); sel.insertBefore(o,sel.firstChild);
+}
+(function(){
+  var html='<optgroup label="נפוצים">';
+  ZONES.forEach(function(z){ if(validTz(z[0])) html+='<option value="'+z[0]+'">'+z[1]+' ('+offLabel(z[0])+')</option>'; });
+  html+='</optgroup>';
+  var all=[]; try{ all=Intl.supportedValuesOf('timeZone'); }catch(e){}
+  if(all.length){ html+='<optgroup label="כל אזורי הזמן">'; all.forEach(function(z){ html+='<option value="'+esc(z)+'">'+esc(z.replace(/_/g,' '))+'</option>'; }); html+='</optgroup>'; }
+  $('#myTz').innerHTML=html;
+  $('#dur').innerHTML=DURS.map(function(d){return '<option value="'+d[0]+'">'+d[1]+'</option>'}).join('');
+})();
+function scrollGridToMorning(){ var box=$('#gridBox'); if(box&&cells[0]) box.scrollTop=Math.max(0,cells[0][14].offsetTop-56); }
+
+/* ---------- start ---------- */
+buildGrid();
+var saved=lsGet(LS_ME); if(saved==='a'||saved==='b') state.me=saved;
+connect();
+render();
+if(state.me) requestAnimationFrame(scrollGridToMorning);
+setInterval(function(){ if(!drag) render(); },30000);
+})();
+</script>
+</body>
+</html>
