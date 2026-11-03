@@ -328,7 +328,8 @@ var SIDES={
 function other(s){return s==='a'?'b':'a'}
 
 var state={people:{a:emptyPerson(),b:emptyPerson()},settings:{dur:60},sessions:[],me:null,brush:3};
-var mode=DB_URL?'connecting':'local', loaded=!DB_URL, tree={}, lastRes=null, drag=null, focusCell={w:0,i:18}, freshId=null;
+var mode='connecting', loaded=false, backend='', db=null, tree={}, lastRes=null, drag=null, focusCell={w:0,i:18}, freshId=null;
+document.documentElement.lang='he'; document.documentElement.dir='rtl';
 
 /* ---------- helpers ---------- */
 function pad(n){return (n<10?'0':'')+n}
@@ -386,7 +387,7 @@ function normPerson(d){
   if(!d||typeof d!=='object') return out;
   if(typeof d.tz==='string') out.tz=d.tz;
   var av=d.avail;
-  if(av&&typeof av==='object') for(var w=0;w<7;w++){var r=av['d'+w]; if(typeof r==='string'&&/^[0-3]{48}$/.test(r)&&r!==EMPTY_ROW) out.avail[w]=r;}
+  if(av&&typeof av==='object') for(var w=0;w<7;w++){var r=av['d'+w]; if(r==null) r=av[w]; if(typeof r==='string'&&/^[0-3]{48}$/.test(r)&&r!==EMPTY_ROW) out.avail[w]=r;}
   return out;
 }
 function normSettings(d){var dur=d&&+d.dur;return {dur:DURS.some(function(x){return x[0]===dur})?dur:60}}
@@ -641,8 +642,9 @@ function renderSync(){
   var el=$('#sync'), t, warn=false;
   if(mode==='local') t='הסנכרון בין המכשירים עוד לא מחובר: הסימונים נשמרים רק בדפדפן הזה.';
   else if(mode==='connecting') t='מתחבר…';
-  else if(mode==='live') t= queue.length?'שומר…':'מסונכרן. כל שינוי מופיע אצל שניכם מיד.';
-  else if(mode==='denied'){ t='אין הרשאה למאגר הנתונים. צריך לבדוק את ההגדרות ב־Firebase.'; warn=true; }
+  else if(mode==='live') t= saving()?'שומר…':'מסונכרן. כל שינוי מופיע אצל שניכם מיד.';
+  else if(mode==='readonly'){ t='צפייה בלבד. כדי לסמן זמנים צריך שיתוף עם הרשאת עריכה.'; warn=true; }
+  else if(mode==='denied'){ t='אין גישה לנתונים המשותפים כרגע.'; warn=true; }
   else { t='אין חיבור כרגע. מנסה שוב…'; warn=true; }
   el.textContent=t; el.className=warn?'warn':'';
 }
@@ -651,7 +653,7 @@ function toast(msg){var el=$('#toast');el.textContent=msg;el.hidden=false;clearT
 
 /* ---------- storage & sync ---------- */
 var LS_ME='chavruta.me', LS_LOCAL='chavruta.local.v2', LS_CACHE='chavruta.cache.v2';
-function canWriteNow(){return mode==='local'||(loaded&&mode!=='denied')}
+function canWriteNow(){return mode==='local'||(loaded&&mode!=='denied'&&mode!=='readonly')}
 
 function treeFromState(){
   var t={people:{a:{tz:state.people.a.tz,avail:serialAvail(state.people.a.avail)},b:{tz:state.people.b.tz,avail:serialAvail(state.people.b.avail)}},settings:{dur:state.settings.dur},sessions:{}};
@@ -668,10 +670,40 @@ function stateFromTree(t,skipMine){
 }
 function saveLocal(){ lsSet(LS_LOCAL,JSON.stringify(treeFromState())); }
 
-var queue=[], qBusy=false;
+var queue=[], qBusy=false, writers={};
 function write(method,path,body){
   if(mode==='local'){ saveLocal(); return; }
+  if(backend==='claude'){ claudeWrite(method,path,body); renderSync(); return; }
   queue.push({method:method,path:path,body:body,tries:0}); pump(); renderSync();
+}
+function saving(){
+  if(queue.length) return true;
+  for(var k in writers) if(writers[k].busy||writers[k].pending) return true;
+  return false;
+}
+/* claude.ai artifact database: one document per person, one for settings, one per booked session */
+function claudeWrite(method,path,body){
+  var parts=path.split('/'), docPath, get=null, del=false;
+  if(parts[0]==='people'){ var s=parts[1]; docPath='people/'+s; get=function(){var p=state.people[s];return {tz:p.tz,avail:serialAvail(p.avail)}}; }
+  else if(parts[0]==='settings'){ docPath='meta/settings'; get=function(){return {dur:state.settings.dur}}; }
+  else if(parts[0]==='sessions'){ docPath='sessions/'+parts[1]; if(method==='DELETE') del=true; else get=function(){return body}; }
+  else return;
+  var w=writers[docPath]||(writers[docPath]={busy:false,pending:false});
+  w.get=get; w.del=del;
+  if(w.busy){ w.pending=true; return; }
+  (function run(){
+    w.busy=true; w.pending=false;
+    var ref=db.doc(docPath), op=function(){ return w.del? ref.delete() : ref.set(w.get()); };
+    op().catch(function(e){
+      if(e&&e.code==='unavailable') return new Promise(function(r){setTimeout(r,700+Math.random()*800)}).then(op);
+      throw e;
+    }).catch(function(e){
+      var code=e&&e.code;
+      if(code==='invalid_argument'||code==='not_granted'||code==='revoked'){ mode='readonly'; toast('אין הרשאה לשמור. אפשר לצפות בלבד.'); }
+      else if(code==='quota_exceeded') toast('נגמר המקום לשמירה.');
+      else toast('השינוי לא נשמר. נסו שוב.');
+    }).then(function(){ w.busy=false; if(w.pending) run(); else scheduleRender(); });
+  })();
 }
 function pump(){
   if(qBusy||!queue.length) return;
@@ -693,7 +725,8 @@ function pump(){
   });
 }
 function mineBusy(){
-  var pre='people/'+state.me;
+  var pre='people/'+state.me, w=writers[pre];
+  if(w&&(w.busy||w.pending)) return true;
   for(var i=0;i<queue.length;i++) if(queue[i].path.indexOf(pre)===0) return true;
   return false;
 }
@@ -715,7 +748,47 @@ function onTree(){
   scheduleRender();
 }
 function connect(){
-  if(!DB_URL){ try{ stateFromTree(JSON.parse(lsGet(LS_LOCAL)||'null')); }catch(e){} return; }
+  var c=window.claude;
+  if(c&&typeof c.use==='function'){
+    c.use('db').then(function(d){ if(d) startClaude(d); else startFallback(); },startFallback);
+    return;
+  }
+  startFallback();
+}
+function startFallback(){ if(DB_URL) startFirebase(); else startLocal(); scheduleRender(); }
+function startLocal(){
+  backend='local'; mode='local'; loaded=true;
+  try{ stateFromTree(JSON.parse(lsGet(LS_LOCAL)||'null')); }catch(e){}
+}
+function startClaude(d){
+  db=d; backend='claude'; renderSync();
+  window.claude.use('user').then(function(u){ return u&&u.can?u.can('data.write'):null; })
+    .then(function(w){ if(w===false){ mode='readonly'; scheduleRender(); } }).catch(function(){});
+  var got={p:false,s:false,x:false};
+  var timer=setTimeout(function(){ if(mode==='connecting'){ mode='offline'; scheduleRender(); } },10000);
+  function settle(k,meta){
+    if(meta&&!meta.fromCache) got[k]=true;
+    if(got.p&&got.s&&got.x&&(mode==='connecting'||mode==='offline')){ clearTimeout(timer); mode='live'; }
+  }
+  function fail(e){ clearTimeout(timer); if(mode!=='readonly') mode=(e&&e.code==='revoked')?'denied':'offline'; scheduleRender(); }
+  db.collection('people').onSnapshot(function(snap){
+    var t={}; snap.docs.forEach(function(x){ if(x.id==='a'||x.id==='b') t[x.id]=x.data(); });
+    var skip=!!state.me&&(!!drag||mineBusy());
+    ['a','b'].forEach(function(s){ if(skip&&s===state.me) return; state.people[s]=normPerson(t[s]); });
+    if(!snap.metadata.fromCache&&!loaded){ loaded=true; autoTz(); }
+    settle('p',snap.metadata); scheduleRender();
+  },fail);
+  db.doc('meta/settings').onSnapshot(function(snap){
+    state.settings=normSettings(snap.exists?snap.data():null);
+    settle('s',snap.metadata); scheduleRender();
+  },fail);
+  db.collection('sessions').onSnapshot(function(snap){
+    state.sessions=snap.docs.map(function(x){return normSession(x.id,x.data())}).filter(Boolean);
+    settle('x',snap.metadata); scheduleRender();
+  },fail);
+}
+function startFirebase(){
+  backend='firebase';
   try{ var cached=JSON.parse(lsGet(LS_CACHE)||'null'); if(cached){ tree=cached; stateFromTree(tree); } }catch(e){}
   if(typeof EventSource==='undefined'){ mode='offline'; return; }
   var es=new EventSource(DB_URL+'/chavruta.json');
