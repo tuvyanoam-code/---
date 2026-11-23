@@ -3,7 +3,9 @@ name: Build APK
 on:
   push:
     branches: ['**']
+    paths-ignore: ['wedding/**', '.github/workflows/wedding-site.yml']
   pull_request:
+    paths-ignore: ['wedding/**', '.github/workflows/wedding-site.yml']
   workflow_dispatch:
 
 permissions:

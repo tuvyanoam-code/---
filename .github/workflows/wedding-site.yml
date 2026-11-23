@@ -1,0 +1,55 @@
+name: Wedding site
+
+# Publishes wedding/ to GitHub Pages whenever it changes on the default branch.
+# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+on:
+  push:
+    paths: ['wedding/**', '.github/workflows/wedding-site.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: wedding-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install PDF tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils imagemagick
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # Renders the invitation PDF to images, builds the WhatsApp preview and the <meta> tags.
+      - name: Build
+        run: node wedding/tools/build.mjs --site-url "${{ steps.pages.outputs.base_url }}/"
+
+      - name: Collect site
+        run: |
+          mkdir -p _site
+          rsync -a --exclude tools --exclude backend --exclude README.md wedding/ _site/
+          touch _site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

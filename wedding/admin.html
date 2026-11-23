@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ניהול החתונה</title>
+<meta name="theme-color" content="#fff8f0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Rubik:wght@400;500;600;700&family=Suez+One&display=swap">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/admin.css">
+<script>
+  try {
+    var t = localStorage.getItem('wedding-admin-theme');
+    if (t) document.documentElement.setAttribute('data-theme', JSON.parse(t));
+  } catch (e) {}
+</script>
+<script src="config.js"></script>
+<script src="invitation/pages.js" onerror="window.INVITATION_PAGES=null"></script>
+<script src="js/util.js" defer></script>
+<script src="js/api.js" defer></script>
+<script src="vendor/qrcode.js" defer></script>
+<script src="js/charts.js" defer></script>
+<script src="js/admin.js" defer></script>
+</head>
+<body class="admin">
+
+<!-- ============ login ============ -->
+<div class="login" id="login" hidden>
+  <form class="login-card" id="loginForm">
+    <div class="login-mark" aria-hidden="true"></div>
+    <h1>ניהול החתונה</h1>
+    <p class="muted" id="loginCouple"></p>
+    <label class="field">
+      <span>סיסמה</span>
+      <input class="input" type="password" id="password" autocomplete="current-password" required>
+    </label>
+    <button class="btn btn-primary btn-block" type="submit" id="loginBtn">כניסה</button>
+    <p class="form-error" id="loginError" role="alert" hidden></p>
+  </form>
+</div>
+
+<!-- ============ app ============ -->
+<div class="shell" id="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <b id="brandCouple"></b>
+        <small id="brandSub"></small>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="מסכים" id="tabs"></nav>
+    <div class="top-actions">
+      <span class="updated" id="updated" aria-live="polite"></span>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" id="refreshBtn" title="רענון" aria-label="רענון"></button>
+      <a class="btn btn-ghost btn-icon btn-sm" id="sheetBtn" target="_blank" rel="noopener" title="פתיחת הגיליון ב-Google Sheets" aria-label="פתיחת הגיליון" hidden></a>
+      <a class="btn btn-ghost btn-icon btn-sm" id="siteBtn" href="./" target="_blank" rel="noopener" title="צפייה בהזמנה" aria-label="צפייה בהזמנה"></a>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" id="themeBtn" title="מצב כהה / בהיר" aria-label="מצב כהה או בהיר"></button>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" id="logoutBtn" title="יציאה" aria-label="יציאה" hidden></button>
+    </div>
+  </header>
+
+  <div class="demo-banner" id="demoBanner" hidden>
+    <p><b>מצב הדגמה.</b> הנתונים נשמרים רק בדפדפן הזה. כדי לקבל אישורים אמיתיים, חברו את הגיליון (הוראות ב-README).</p>
+    <div class="demo-actions">
+      <button class="btn btn-sm" type="button" id="seedBtn">מילוי בנתוני דוגמה</button>
+      <button class="btn btn-sm btn-ghost" type="button" id="resetBtn">ניקוי</button>
+    </div>
+  </div>
+
+  <main class="main">
+
+    <!-- overview -->
+    <section class="view" data-view="overview" aria-labelledby="t-overview">
+      <h1 class="sr-only" id="t-overview">סקירה</h1>
+      <div class="ov-top">
+        <article class="card hero-card">
+          <p class="eyebrow">אישרו הגעה</p>
+          <p class="hero-num"><span id="heroNum">0</span><small>אורחים</small></p>
+          <p class="hero-sub" id="heroSub"></p>
+          <div class="meter" id="heroMeter" hidden><span></span></div>
+        </article>
+        <div class="tiles" id="tiles"></div>
+      </div>
+
+      <div class="grid-2">
+        <article class="card">
+          <header class="card-head"><h2>התשובות עד עכשיו</h2><p class="muted" id="segNote"></p></header>
+          <div id="segChart"></div>
+        </article>
+        <article class="card">
+          <header class="card-head"><h2>מהכניסה ועד התשובה</h2><p class="muted">מבקרים ייחודיים בכל שלב</p></header>
+          <div id="funnelChart"></div>
+        </article>
+      </div>
+
+      <div class="grid-2">
+        <article class="card">
+          <header class="card-head"><h2>אורחים שאישרו, לאורך זמן</h2><p class="muted">סך מצטבר לפי יום</p></header>
+          <div id="lineChart" class="chart-box"></div>
+        </article>
+        <article class="card">
+          <header class="card-head"><h2>מבקרים ביום</h2><p class="muted">30 הימים האחרונים</p></header>
+          <div id="colChart" class="chart-box"></div>
+        </article>
+      </div>
+
+      <div class="grid-3">
+        <article class="card">
+          <header class="card-head"><h2>מאיפה הגיעו</h2><p class="muted">מבקרים לפי ערוץ</p></header>
+          <div id="srcChart"></div>
+          <p class="muted small" id="deviceNote"></p>
+        </article>
+        <article class="card">
+          <header class="card-head"><h2>לפי צד</h2><p class="muted">אישרו מתוך המוזמנים</p></header>
+          <div id="sidesBox"></div>
+        </article>
+        <article class="card">
+          <header class="card-head"><h2>ברכות אחרונות</h2></header>
+          <ul class="notes" id="notesBox"></ul>
+        </article>
+      </div>
+
+      <article class="card">
+        <header class="card-head row">
+          <h2>פעילות אחרונה</h2>
+          <button class="btn btn-sm btn-ghost" type="button" data-goto="activity">לכל הפעילות</button>
+        </header>
+        <ul class="feed" id="recentFeed"></ul>
+      </article>
+    </section>
+
+    <!-- rsvps -->
+    <section class="view" data-view="rsvps" aria-labelledby="t-rsvps" hidden>
+      <div class="view-head">
+        <h1 id="t-rsvps">אישורי הגעה</h1>
+        <div class="view-actions">
+          <button class="btn btn-sm" type="button" id="addRsvpBtn"></button>
+          <button class="btn btn-sm" type="button" id="exportRsvpBtn"></button>
+          <button class="btn btn-sm" type="button" id="printBtn"></button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label class="search"><span class="sr-only">חיפוש</span><input class="input" type="search" id="rsvpSearch" placeholder="חיפוש לפי שם, טלפון או ברכה"></label>
+        <div class="chips" id="rsvpChips" role="group" aria-label="סינון לפי תשובה"></div>
+        <label class="sort"><span class="sr-only">מיון</span>
+          <select class="input" id="rsvpSort">
+            <option value="updated">החדשים קודם</option>
+            <option value="name">לפי שם</option>
+            <option value="count">לפי מספר אורחים</option>
+          </select>
+        </label>
+      </div>
+      <div class="card table-card">
+        <table class="table" id="rsvpTable">
+          <thead><tr><th>שם</th><th>תשובה</th><th class="num">אורחים</th><th>טלפון</th><th>ברכה / הערה</th><th>מקור</th><th>עודכן</th><th><span class="sr-only">פעולות</span></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p class="empty" id="rsvpEmpty" hidden></p>
+      </div>
+      <p class="table-total" id="rsvpTotal"></p>
+    </section>
+
+    <!-- guests -->
+    <section class="view" data-view="guests" aria-labelledby="t-guests" hidden>
+      <div class="view-head">
+        <h1 id="t-guests">מוזמנים</h1>
+        <div class="view-actions">
+          <button class="btn btn-sm btn-primary" type="button" id="sendQueueBtn"></button>
+          <button class="btn btn-sm" type="button" id="addGuestBtn"></button>
+          <button class="btn btn-sm" type="button" id="importBtn"></button>
+          <button class="btn btn-sm" type="button" id="exportGuestsBtn"></button>
+        </div>
+      </div>
+      <div class="pipeline" id="pipeline"></div>
+      <div class="toolbar">
+        <label class="search"><span class="sr-only">חיפוש</span><input class="input" type="search" id="guestSearch" placeholder="חיפוש לפי שם או טלפון"></label>
+        <label class="sort"><span class="sr-only">צד</span><select class="input" id="sideFilter"></select></label>
+      </div>
+      <div class="card table-card">
+        <table class="table" id="guestTable">
+          <thead><tr><th>שם</th><th>מצב</th><th>טלפון</th><th>צד</th><th class="num">מוזמנים</th><th>שליחת הזמנה אישית · עריכה</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty" id="guestEmpty" hidden></div>
+      </div>
+      <p class="table-total" id="guestTotal"></p>
+    </section>
+
+    <!-- share -->
+    <section class="view" data-view="share" aria-labelledby="t-share" hidden>
+      <div class="view-head"><h1 id="t-share">שיתוף ההזמנה</h1></div>
+      <div class="grid-2 share-grid">
+        <div class="stack">
+        <article class="card">
+          <header class="card-head"><h2>הקישור להזמנה</h2><p class="muted">שלחו בקבוצות, בסטטוס, או לכל מי שתרצו</p></header>
+          <div class="linkbox">
+            <code id="shareLink" dir="ltr"></code>
+            <button class="btn btn-sm" type="button" id="copyLinkBtn"></button>
+          </div>
+          <label class="field">
+            <span>נוסח ההודעה</span>
+            <textarea class="input" id="shareMsg" rows="5"></textarea>
+          </label>
+          <p class="muted small">{couple} = השמות · {date} = התאריך · {link} = הקישור · {name} = שם המוזמן (בהודעות אישיות)</p>
+          <div class="share-btns" id="shareBtns"></div>
+          <button class="btn btn-sm btn-ghost" type="button" id="resetMsgBtn">החזרת הנוסח המקורי</button>
+        </article>
+        <article class="card">
+          <header class="card-head"><h2>קישור אישי לכל מוזמן</h2></header>
+          <p class="muted">בלשונית <b>מוזמנים</b> יש לכל מוזמן כפתורי שליחה עם קישור משלו. ההזמנה נפתחת עם ברכה בשמו, הטופס כבר מולא בשם ובמספר המוזמנים, ואתם יודעים בדיוק מי צפה ומי ענה.</p>
+          <div class="row-actions" style="justify-content:flex-start;margin-top:14px"><button class="btn btn-sm" type="button" data-goto="guests">למוזמנים</button></div>
+        </article>
+        </div>
+        <div class="stack">
+          <article class="card">
+            <header class="card-head"><h2>ככה זה ייראה בוואטסאפ</h2></header>
+            <div class="wa-preview">
+              <div class="wa-bubble">
+                <div class="wa-card">
+                  <img id="ogImg" alt="" loading="lazy">
+                  <div class="wa-meta"><b id="ogTitle"></b><span id="ogDesc"></span><small dir="ltr" id="ogHost"></small></div>
+                </div>
+                <p class="wa-text" id="waText"></p>
+              </div>
+            </div>
+          </article>
+          <article class="card qr-card">
+            <header class="card-head"><h2>קוד QR</h2><p class="muted">להזמנה מודפסת, לשולט בכניסה או לשולחנות</p></header>
+            <div class="qr" id="qrBox"></div>
+            <div class="row-actions">
+              <button class="btn btn-sm" type="button" id="qrDownload"></button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- activity -->
+    <section class="view" data-view="activity" aria-labelledby="t-activity" hidden>
+      <div class="view-head">
+        <h1 id="t-activity">פעילות</h1>
+        <div class="view-actions"><button class="btn btn-sm" type="button" id="exportEventsBtn"></button></div>
+      </div>
+      <div class="toolbar">
+        <label class="sort"><span class="sr-only">סוג פעולה</span><select class="input" id="eventFilter"></select></label>
+      </div>
+      <article class="card">
+        <ul class="feed" id="activityFeed"></ul>
+        <button class="btn btn-sm btn-block more-btn" type="button" id="moreEvents" hidden>עוד</button>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottom-tabs" id="bottomTabs" aria-label="מסכים"></nav>
+</div>
+
+<!-- ============ dialogs ============ -->
+<dialog class="dialog" id="rsvpDialog">
+  <form method="dialog" class="dialog-body" id="rsvpEditForm">
+    <h2 id="rsvpDialogTitle">אישור הגעה</h2>
+    <label class="field"><span>שם</span><input class="input" name="name" required maxlength="80"></label>
+    <div class="field"><span>תשובה</span>
+      <div class="seg-control">
+        <label><input type="radio" name="status" value="yes" checked><span>מגיעים</span></label>
+        <label><input type="radio" name="status" value="maybe"><span>אולי</span></label>
+        <label><input type="radio" name="status" value="no"><span>לא מגיעים</span></label>
+      </div>
+    </div>
+    <label class="field"><span>מספר אורחים</span><input class="input" name="count" type="number" min="1" max="50" value="2" inputmode="numeric"></label>
+    <label class="field"><span>טלפון</span><input class="input" name="phone" type="tel" dir="ltr" maxlength="30"></label>
+    <label class="field"><span>ברכה / הערה</span><textarea class="input" name="note" maxlength="600"></textarea></label>
+    <div class="dialog-actions">
+      <button class="btn btn-primary" value="save" type="submit">שמירה</button>
+      <button class="btn btn-ghost" value="cancel" type="button" data-close>ביטול</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog" id="guestDialog">
+  <form method="dialog" class="dialog-body" id="guestEditForm">
+    <h2 id="guestDialogTitle">מוזמן</h2>
+    <label class="field"><span>שם (כפי שיופיע בברכה)</span><input class="input" name="name" required maxlength="80" placeholder="למשל: משפחת כהן"></label>
+    <label class="field"><span>טלפון</span><input class="input" name="phone" type="tel" dir="ltr" maxlength="30" placeholder="050-0000000"></label>
+    <div class="field-row">
+      <label class="field"><span>צד</span><select class="input" name="side"></select></label>
+      <label class="field"><span>כמה מוזמנים</span><input class="input" name="invited" type="number" min="0" max="50" value="2" inputmode="numeric"></label>
+    </div>
+    <label class="field"><span>הערות (רק לכם)</span><input class="input" name="notes" maxlength="300"></label>
+    <div class="dialog-actions">
+      <button class="btn btn-primary" value="save" type="submit">שמירה</button>
+      <button class="btn btn-ghost" value="cancel" type="button" data-close>ביטול</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog" id="importDialog">
+  <form method="dialog" class="dialog-body" id="importForm">
+    <h2>ייבוא רשימת מוזמנים</h2>
+    <p class="muted">הדביקו מאקסל או מגוגל שיטס, שורה לכל מוזמן: <b>שם, טלפון, כמה מוזמנים, צד</b>. רק השם חובה.</p>
+    <textarea class="input mono" id="importText" rows="8" placeholder="משפחת כהן	050-1234567	4	כלה&#10;יוסי לוי, 0527654321, 2&#10;דנה"></textarea>
+    <label class="btn btn-sm file-btn"><input type="file" id="importFile" accept=".csv,.txt,.tsv,text/csv,text/plain"><span>או בחירת קובץ CSV</span></label>
+    <p class="import-preview" id="importPreview"></p>
+    <div class="dialog-actions">
+      <button class="btn btn-primary" value="save" type="submit" id="importGo" disabled>ייבוא</button>
+      <button class="btn btn-ghost" value="cancel" type="button" data-close>ביטול</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dialog" id="queueDialog">
+  <div class="dialog-body">
+    <h2>שליחה ברצף</h2>
+    <p class="muted" id="queueInfo"></p>
+    <div class="queue-card" id="queueCard"></div>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" type="button" data-close>סיום</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+</body>
+</html>
