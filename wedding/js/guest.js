@@ -30,7 +30,7 @@
 
   /* ---------- hero ---------- */
   document.querySelectorAll('.names .name').forEach((el) => {
-    el.textContent = (cfg.couple || [])[+el.dataset.i] || '';
+    el.textContent = W.couple()[+el.dataset.i] || '';
   });
   $('#names').setAttribute('aria-label', W.coupleText);
   $('#sign').textContent = W.coupleText;
@@ -41,13 +41,13 @@
     const left = W.daysUntil(d);
     const cd = $('#countdown');
     if (left > 1) {
-      cd.innerHTML = `עוד <b>${W.num(left)}</b> ימים`;
+      cd.innerHTML = W.t('g.daysLeft', { n: `<b>${W.num(left)}</b>` });
       cd.hidden = false;
     } else if (left === 1) {
-      cd.innerHTML = '<b>מחר!</b>';
+      cd.innerHTML = `<b>${W.esc(W.t('g.tomorrow'))}</b>`;
       cd.hidden = false;
     } else if (left === 0) {
-      cd.innerHTML = '<b>היום!</b> מזל טוב';
+      cd.innerHTML = `<b>${W.esc(W.t('g.today'))}</b>`;
       cd.hidden = false;
     }
   }
@@ -56,7 +56,7 @@
     api.guest(guestId).then((g) => {
       if (!g || !g.name) return;
       const el = $('#greeting');
-      el.textContent = `היי ${g.name}, הוזמנתם!`;
+      el.textContent = W.t('g.greeting', { name: g.name });
       el.hidden = false;
       const name = $('#name');
       if (!name.value) name.value = g.name;
@@ -65,15 +65,19 @@
   }
 
   /* ---------- invitation preview + viewer ---------- */
-  const pdfUrl = cfg.invitationPdf || 'invitation.pdf';
-  const pdfName = `הזמנה - ${W.coupleText.replace(' & ', ' ו')}.pdf`;
-  const pages = (window.INVITATION_PAGES && window.INVITATION_PAGES.pages) || [];
+  // Each language may have its own PDF; English falls back to the Hebrew one.
+  const IP = window.INVITATION_PAGES || {};
+  const pagesSet = (IP[W.lang] && IP[W.lang].pages && IP[W.lang].pages.length ? IP[W.lang] : IP.he) || {};
+  const pdfUrl = pagesSet.pdf || W.L(cfg.invitationPdf) || 'invitation.pdf';
+  const pdfName = W.t('g.pdfName', { couple: W.coupleText });
+  const pages = pagesSet.pages || [];
+  $('#invitePreview').alt = W.t('g.inviteAlt');
   const preview = $('#invitePreview');
   const placeholder = $('#invitePlaceholder');
 
-  $('#openViewer').innerHTML = `${I.eye}<span>צפייה בהזמנה</span>`;
+  $('#openViewer').innerHTML = `${I.eye}<span>${W.esc(W.t('g.view'))}</span>`;
   const dl = $('#downloadPdf');
-  dl.innerHTML = `${I.download}<span>הורדת PDF</span>`;
+  dl.innerHTML = `${I.download}<span>${W.esc(W.t('g.download'))}</span>`;
   [dl, $('#vDownload')].forEach((a) => {
     a.href = pdfUrl;
     a.setAttribute('download', pdfName);
@@ -105,7 +109,7 @@
   }
   function previewFailed() {
     placeholder.classList.add('failed');
-    placeholder.lastElementChild.textContent = 'לחצו לפתיחת ההזמנה';
+    placeholder.lastElementChild.textContent = W.t('g.tapOpen');
   }
 
   const viewer = $('#viewer');
@@ -124,7 +128,7 @@
         const img = document.createElement('img');
         img.width = p.w;
         img.height = p.h;
-        img.alt = `ההזמנה — עמוד ${i + 1}`;
+        img.alt = W.t('g.page', { n: i + 1 });
         img.decoding = 'async';
         img.loading = i === 0 ? 'eager' : 'lazy';
         img.src = p.src2x || p.src;
@@ -145,7 +149,7 @@
       const frame = document.createElement('iframe');
       frame.className = 'viewer-frame';
       frame.src = pdfUrl;
-      frame.title = 'ההזמנה';
+      frame.title = W.t('g.inviteTitle');
       wrap.appendChild(frame);
       $('#vZoomIn').hidden = $('#vZoomOut').hidden = true;
     }
@@ -209,6 +213,25 @@
     } else lastTap = now;
   });
 
+  /* ---------- floating RSVP button ---------- */
+  const floatCta = $('#floatCta');
+  const vis = { hero: true, rsvp: false };
+  function updateFloat() {
+    const hide = vis.hero || vis.rsvp || !!saved;
+    floatCta.hidden = false;
+    floatCta.classList.toggle('away', hide);
+  }
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        vis[e.target === $('#heroCta') ? 'hero' : 'rsvp'] = e.isIntersecting;
+      });
+      updateFloat();
+    });
+    io.observe($('#heroCta'));
+    io.observe($('#rsvp'));
+  }
+
   /* ---------- RSVP ---------- */
   const form = $('#rsvpForm');
   const fields = $('#rsvpFields');
@@ -217,8 +240,8 @@
 
   if (rsvpCfg.deadline) {
     const dd = W.parseLocal(rsvpCfg.deadline);
-    if (dd) $('#rsvpSub').textContent = `נשמח לתשובה עד ${W.fmtDate(dd, { day: 'numeric', month: 'long' })}`;
-  } else $('#rsvpSub').textContent = 'נשמח לדעת אם תגיעו';
+    if (dd) $('#rsvpSub').textContent = W.t('g.deadline', { date: W.fmtDate(dd, { day: 'numeric', month: 'long' }) });
+  } else $('#rsvpSub').textContent = W.t('g.noDeadline');
 
   form.querySelector('.c-yes .choice-ico').innerHTML = I.check;
   form.querySelector('.c-maybe .choice-ico').innerHTML = I.maybe;
@@ -231,7 +254,7 @@
   function setCount(n, animate) {
     count = Math.max(1, Math.min(rsvpCfg.maxGuests || 10, n));
     countEl.textContent = count;
-    $('#countWords').textContent = count === 1 ? 'רק אני' : `אני + ${count - 1}`;
+    $('#countWords').textContent = count === 1 ? W.t('g.justMe') : W.t('g.mePlus', { n: count - 1 });
     form.querySelector('[data-step="-1"]').disabled = count <= 1;
     form.querySelector('[data-step="1"]').disabled = count >= (rsvpCfg.maxGuests || 10);
     if (animate) {
@@ -252,7 +275,7 @@
     const s = status();
     fields.classList.toggle('collapsed', !s);
     $('#countField').hidden = s === 'no';
-    $('#submitBtn').textContent = s === 'no' ? 'שליחה' : s === 'maybe' ? 'שליחה (אפשר לעדכן אחר כך)' : 'אישור הגעה';
+    $('#submitBtn').textContent = W.t(s === 'no' ? 'g.submitNo' : s === 'maybe' ? 'g.submitMaybe' : 'g.submitYes');
     if (s && !started) {
       started = true;
       api.track('rsvp_start', s);
@@ -284,7 +307,7 @@
       void nameEl.offsetWidth;
       nameEl.classList.add('invalid');
       nameEl.focus();
-      err.textContent = 'נשמח לדעת את השם שלכם';
+      err.textContent = W.t('g.errName');
       err.hidden = false;
       return;
     }
@@ -292,7 +315,7 @@
     const phone = $('#phone').value.trim();
     if (phone && phone.replace(/\D/g, '').length < 9) {
       $('#phone').classList.add('invalid');
-      err.textContent = 'מספר הטלפון נראה חסר';
+      err.textContent = W.t('g.errPhone');
       err.hidden = false;
       return;
     }
@@ -309,6 +332,7 @@
       guest: guestId,
       src,
       device: W.device(),
+      lang: W.lang,
     };
     try {
       await api.rsvp(data);
@@ -317,7 +341,7 @@
       api.track('rsvp', `${s}:${data.count}|${name}`);
       showThanks(true);
     } catch (ex) {
-      err.textContent = 'השליחה לא הצליחה. בדקו את החיבור לאינטרנט ונסו שוב.';
+      err.textContent = W.t('g.errSend');
       err.hidden = false;
     } finally {
       btn.classList.remove('loading');
@@ -331,14 +355,14 @@
     badge.innerHTML = r.status === 'yes' ? I.check : r.status === 'maybe' ? I.maybe : I.heart;
     const first = (r.name || '').split(' ')[0];
     if (r.status === 'yes') {
-      $('#thanksTitle').textContent = `איזה כיף${first ? ', ' + first : ''}!`;
-      $('#thanksText').textContent = r.count === 1 ? 'שמרנו לך מקום. נתראה ברחבה!' : `שמרנו ${r.count} מקומות. נתראה ברחבה!`;
+      $('#thanksTitle').textContent = first ? W.t('g.thxYesName', { name: first }) : W.t('g.thxYes');
+      $('#thanksText').textContent = r.count === 1 ? W.t('g.thxYesOne') : W.t('g.thxYesMany', { n: r.count });
     } else if (r.status === 'maybe') {
-      $('#thanksTitle').textContent = 'קיבלנו, תודה!';
-      $('#thanksText').textContent = 'אפשר לחזור לכאן ולעדכן בכל רגע. מקווים לראותכם!';
+      $('#thanksTitle').textContent = W.t('g.thxMaybeT');
+      $('#thanksText').textContent = W.t('g.thxMaybe');
     } else {
-      $('#thanksTitle').textContent = 'חבל שלא תוכלו להגיע';
-      $('#thanksText').textContent = 'תודה שעדכנתם. נחשוב עליכם ונרים כוסית!';
+      $('#thanksTitle').textContent = W.t('g.thxNoT');
+      $('#thanksText').textContent = W.t('g.thxNo');
     }
     $('#thanksCalendar').hidden = r.status === 'no';
     form.hidden = true;
@@ -350,7 +374,7 @@
     }
   }
 
-  $('#editRsvp').innerHTML = `${I.edit}<span>שינוי תשובה</span>`;
+  $('#editRsvp').innerHTML = `${I.edit}<span>${W.esc(W.t('g.edit'))}</span>`;
   $('#editRsvp').addEventListener('click', () => {
     fillForm(saved);
     $('#thanks').hidden = true;
@@ -371,13 +395,13 @@
     const t = document.createElement('time');
     t.textContent = s.time;
     const span = document.createElement('span');
-    span.textContent = s.label;
+    span.textContent = W.L(s.label);
     li.append(t, span);
     sched.appendChild(li);
   });
   const v = cfg.venue || {};
-  $('#dVenue').textContent = v.name || '';
-  $('#dAddress').textContent = v.address || '';
+  $('#dVenue').textContent = W.L(v.name);
+  $('#dAddress').textContent = W.L(v.address);
   document.querySelectorAll('.detail-card .detail-ico')[0].innerHTML = I.calendar;
   document.querySelectorAll('.detail-card .detail-ico')[1].innerHTML = I.pin;
   const maps = W.mapsLinks();
@@ -398,12 +422,12 @@
     g.href = cal.google;
     g.target = '_blank';
     g.rel = 'noopener';
-    g.innerHTML = `${I.calendar}<span>יומן Google</span>`;
+    g.innerHTML = `${I.calendar}<span>${W.esc(W.t('g.gcal'))}</span>`;
     g.addEventListener('click', () => api.track('calendar', 'google'));
     const ics = document.createElement('button');
     ics.type = 'button';
     ics.className = 'btn btn-sm';
-    ics.innerHTML = `${I.calendar}<span>אייפון / Outlook</span>`;
+    ics.innerHTML = `${I.calendar}<span>${W.esc(W.t('g.ical'))}</span>`;
     ics.addEventListener('click', () => {
       W.download('wedding.ics', cal.ics, 'text/calendar;charset=utf-8');
       api.track('calendar', 'ics');
@@ -411,14 +435,14 @@
     box.append(g, ics);
     const tc = $('#thanksCalendar');
     tc.href = cal.google;
-    tc.innerHTML = `${I.calendar}<span>הוספה ליומן</span>`;
+    tc.innerHTML = `${I.calendar}<span>${W.esc(W.t('g.addCal'))}</span>`;
     tc.addEventListener('click', () => api.track('calendar', 'google'));
   } else $('#thanksCalendar').hidden = true;
 
   /* ---------- share ---------- */
   const dateText = d ? `${W.fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}` : '';
   function shareText(link) {
-    return W.fill(cfg.shareText, { couple: W.coupleText, link, date: dateText, name: '' });
+    return W.fill(W.L(cfg.shareText), { couple: W.coupleText, link, date: dateText, name: '' });
   }
   // channel: wa | tg | sms | copy | more — the same codes the dashboard groups by
   async function shareTo(channel) {
@@ -428,16 +452,16 @@
     const target = { wa: urls.whatsapp, tg: urls.telegram, sms: urls.sms }[channel];
     api.track(channel === 'copy' ? 'copy_link' : 'share', channel);
     if (channel === 'copy') {
-      (await W.copy(link)) ? W.toast('הקישור הועתק') : W.toast(link);
+      (await W.copy(link)) ? W.toast(W.t('g.copied')) : W.toast(link);
       return;
     }
     if (channel === 'more') {
       if (navigator.share) {
         try {
-          await navigator.share({ title: `${W.coupleText} מתחתנים!`, text: text.replace(link, '').trim(), url: link });
+          await navigator.share({ title: W.t('g.ogTitle', { couple: W.coupleText }), text: text.replace(link, '').trim(), url: link });
         } catch (e) {}
       } else {
-        (await W.copy(link)) && W.toast('הקישור הועתק');
+        (await W.copy(link)) && W.toast(W.t('g.copied'));
       }
       return;
     }
@@ -445,12 +469,12 @@
     else window.open(target, '_blank', 'noopener');
   }
   const shareDefs = [
-    ['wa', 'וואטסאפ', I.whatsapp, 'd-wa'],
-    ['tg', 'טלגרם', I.telegram, 'd-tg'],
-    ['sms', 'SMS', I.sms, 'd-sms'],
-    ['copy', 'העתקה', I.link, 'd-copy'],
+    ['wa', W.t('g.wa'), I.whatsapp, 'd-wa'],
+    ['tg', W.t('g.tg'), I.telegram, 'd-tg'],
+    ['sms', W.t('g.sms'), I.sms, 'd-sms'],
+    ['copy', W.t('g.copy'), I.link, 'd-copy'],
   ];
-  if (navigator.share) shareDefs.push(['more', 'עוד…', I.share, 'd-more']);
+  if (navigator.share) shareDefs.push(['more', W.t('g.more'), I.share, 'd-more']);
   const row = $('#shareRow');
   shareDefs.forEach(([ch, label, icon, cls]) => {
     const b = document.createElement('button');
@@ -460,25 +484,6 @@
     b.addEventListener('click', () => shareTo(ch));
     row.appendChild(b);
   });
-
-  /* ---------- floating RSVP button ---------- */
-  const floatCta = $('#floatCta');
-  const vis = { hero: true, rsvp: false };
-  function updateFloat() {
-    const hide = vis.hero || vis.rsvp || !!saved;
-    floatCta.hidden = false;
-    floatCta.classList.toggle('away', hide);
-  }
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        vis[e.target === $('#heroCta') ? 'hero' : 'rsvp'] = e.isIntersecting;
-      });
-      updateFloat();
-    });
-    io.observe($('#heroCta'));
-    io.observe($('#rsvp'));
-  }
 
   /* ---------- ticket notch follows the perforation line ---------- */
   function placeNotch() {

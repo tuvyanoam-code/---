@@ -4,16 +4,77 @@
 
   const cfg = window.WEDDING || {};
   const C = (window.W = {});
-
   C.cfg = cfg;
-  C.coupleText = (cfg.couple || []).join(' & ');
-  C.sides = cfg.sides && cfg.sides.length ? cfg.sides : [...(cfg.couple || []), 'משותף'];
+
+  /* ---------- language ---------- */
+  // The inline script in <head> already picked the language (?lang=, saved choice, page default) and set lang/dir.
+  C.lang = document.documentElement.lang === 'en' ? 'en' : 'he';
+  C.rtl = C.lang === 'he';
+  C.locale = C.lang === 'en' ? 'en-GB' : 'he-IL';
+  const dict = (window.I18N || {})[C.lang] || {};
+  const dictHe = (window.I18N || {}).he || {};
+
+  // A config value may be plain, or { he, en }.
+  C.L = (v, lang) => {
+    if (v == null) return '';
+    if (typeof v !== 'object' || Array.isArray(v)) return v;
+    const l = lang || C.lang;
+    return v[l] != null && v[l] !== '' && !(Array.isArray(v[l]) && !v[l].length) ? v[l] : v.he != null ? v.he : v.en != null ? v.en : '';
+  };
+
+  C.fill = (tpl, vars) => String(tpl == null ? '' : tpl).replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m));
+
+  // t('key', { n: 3 }) — picks the singular/plural form by n and fills {placeholders}.
+  C.t = (key, vars, lang) => {
+    const d = lang ? (window.I18N || {})[lang] || dict : dict;
+    let s = d[key] != null ? d[key] : dictHe[key] != null ? dictHe[key] : key;
+    if (s && typeof s === 'object' && !Array.isArray(s)) s = vars && Number(vars.n) === 1 ? s.one : s.other;
+    if (Array.isArray(s)) return s;
+    return C.fill(s, Object.assign({}, vars, vars && vars.n != null && typeof vars.n === 'number' ? { n: C.num(vars.n) } : {}));
+  };
+
+  C.couple = (lang) => C.L(cfg.couple, lang) || [];
+  C.coupleText = C.couple().join(' & ');
+
+  // Sides are stored in their Hebrew form (stable in the sheet) and shown in the current language.
+  const sidesFor = (lang) => {
+    const s = C.L(cfg.sides, lang);
+    return Array.isArray(s) && s.length ? s : [...C.couple(lang), C.t('c.both', null, lang)];
+  };
+  C.sides = sidesFor('he');
+  C.sideLabel = (v) => {
+    const i = C.sides.indexOf(v);
+    return i >= 0 ? sidesFor(C.lang)[i] || v : v;
+  };
+
+  // Fill [data-i18n] texts and attributes.
+  C.applyI18n = (root) => {
+    (root || document).querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = C.t(el.dataset.i18n)));
+    (root || document).querySelectorAll('[data-i18n-ph]').forEach((el) => (el.placeholder = C.t(el.dataset.i18nPh)));
+    (root || document).querySelectorAll('[data-i18n-aria]').forEach((el) => el.setAttribute('aria-label', C.t(el.dataset.i18nAria)));
+    (root || document).querySelectorAll('[data-i18n-title]').forEach((el) => (el.title = C.t(el.dataset.i18nTitle)));
+  };
+
+  // Language switch: remember the choice and reload in the other language.
+  C.switchLang = () => {
+    const next = C.lang === 'he' ? 'en' : 'he';
+    try {
+      localStorage.setItem('wedding-lang', JSON.stringify(next));
+    } catch (e) {}
+    const u = new URL(location.href);
+    u.searchParams.delete('lang');
+    location.replace(u.toString());
+  };
+  C.langButton = (el) => {
+    el.textContent = C.t('c.langBtn');
+    el.setAttribute('aria-label', C.t('c.langAria'));
+    el.setAttribute('lang', C.lang === 'he' ? 'en' : 'he');
+    el.addEventListener('click', C.switchLang);
+  };
 
   /* ---------- text ---------- */
   C.esc = (v) =>
     String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-
-  C.fill = (tpl, vars) => String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
 
   C.uid = (len = 10) => {
     const a = new Uint8Array(len);
@@ -22,7 +83,7 @@
     return Array.from(a, (b) => abc[b % abc.length]).join('');
   };
 
-  C.num = (n) => new Intl.NumberFormat('he-IL').format(n || 0);
+  C.num = (n) => new Intl.NumberFormat(C.locale).format(n || 0);
 
   /* ---------- dates ---------- */
   // "2027-06-17T19:30" is read as local time (Israel for the couple and nearly all guests).
@@ -33,8 +94,8 @@
   };
   C.eventDate = C.parseLocal(cfg.date);
 
-  C.fmtDate = (d, opts) => new Intl.DateTimeFormat('he-IL', opts).format(d);
-  C.longDate = (d) => C.fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  C.fmtDate = (d, opts, lang) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : lang === 'he' ? 'he-IL' : C.locale, opts).format(d);
+  C.longDate = (d, lang) => C.fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, lang);
   C.shortDate = (d) => C.fmtDate(d, { day: 'numeric', month: 'numeric', year: 'numeric' });
   C.timeOf = (d) => C.fmtDate(d, { hour: '2-digit', minute: '2-digit', hour12: false });
 
@@ -54,7 +115,15 @@
   };
 
   C.hebrewDate = (d) => {
-    if (cfg.hebrewDate) return cfg.hebrewDate;
+    const custom = C.L(cfg.hebrewDate);
+    if (custom) return custom;
+    if (C.lang === 'en') {
+      try {
+        return new Intl.DateTimeFormat('en-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+      } catch (e) {
+        return '';
+      }
+    }
     try {
       const parts = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }).formatToParts(d);
       const get = (t) => (parts.find((p) => p.type === t) || {}).value;
@@ -78,31 +147,31 @@
 
   C.relTime = (t) => {
     const s = Math.round((Date.now() - t) / 1000);
-    if (s < 60) return 'עכשיו';
+    if (s < 60) return C.t('c.now');
     const m = Math.round(s / 60);
-    if (m < 60) return m === 1 ? 'לפני דקה' : `לפני ${m} דק׳`;
+    if (m < 60) return C.t('c.min', { n: m });
     const h = Math.round(m / 60);
-    if (h < 24) return h === 1 ? 'לפני שעה' : `לפני ${h} שע׳`;
+    if (h < 24) return C.t('c.hr', { n: h });
     const days = Math.round(h / 24);
-    if (days < 7) return days === 1 ? 'אתמול' : `לפני ${days} ימים`;
+    if (days < 7) return days === 1 ? C.t('c.yesterday') : C.t('c.days', { n: days });
     return C.shortDate(new Date(t));
   };
 
   /* ---------- links ---------- */
   C.siteUrl = (() => {
+    const here = location.href.replace(/[?#].*$/, '').replace(/(index|admin|en)\.html$/, '');
     const u = cfg.siteUrl || '';
-    if (/^https?:\/\//.test(location.href) && !location.href.startsWith(u)) {
-      // Served from somewhere else (local preview, another host): share the address we are on.
-      return location.href.replace(/[?#].*$/, '').replace(/(index|admin)\.html$/, '');
-    }
-    return u || location.href.replace(/[?#].*$/, '').replace(/(index|admin)\.html$/, '');
+    // Served from somewhere else (local preview, another host): share the address we are on.
+    if (/^https?:\/\//.test(location.href) && !location.href.startsWith(u)) return here;
+    return u || here;
   })();
 
-  C.link = (params) => {
+  // The English page is en.html: same site, English texts, and an English WhatsApp preview.
+  C.link = (params, lang) => {
     const q = new URLSearchParams();
     Object.entries(params || {}).forEach(([k, v]) => v && q.set(k, v));
     const qs = q.toString();
-    return C.siteUrl + (qs ? '?' + qs : '');
+    return C.siteUrl + ((lang || C.lang) === 'en' ? 'en.html' : '') + (qs ? '?' + qs : '');
   };
 
   C.normalizePhone = (p) => {
@@ -138,7 +207,7 @@
 
   C.mapsLinks = () => {
     const v = cfg.venue || {};
-    const q = encodeURIComponent([v.name, v.address].filter(Boolean).join(', '));
+    const q = encodeURIComponent([C.L(v.name), C.L(v.address)].filter(Boolean).join(', '));
     return {
       waze: v.waze || `https://waze.com/ul?q=${q}&navigate=yes`,
       maps: v.maps || `https://www.google.com/maps/search/?api=1&query=${q}`,
@@ -153,8 +222,8 @@
     if (!start) return null;
     const end = new Date(start.getTime() + 5 * 3600 * 1000);
     const v = cfg.venue || {};
-    const title = `החתונה של ${C.coupleText}`;
-    const where = [v.name, v.address].filter(Boolean).join(', ');
+    const title = C.t('g.calTitle', { couple: C.coupleText });
+    const where = [C.L(v.name), C.L(v.address)].filter(Boolean).join(', ');
     const google =
       'https://calendar.google.com/calendar/render?action=TEMPLATE' +
       `&text=${encodeURIComponent(title)}&dates=${icsStamp(start)}/${icsStamp(end)}` +
@@ -297,4 +366,8 @@
     logout: svg('<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l-4-4 4-4M6 12h10"/>'),
     sparkle: svg('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'),
   };
+
+  C.applyI18n();
+  document.querySelectorAll('[data-lang-toggle]').forEach(C.langButton);
+  document.documentElement.classList.remove('i18n-pending');
 })();

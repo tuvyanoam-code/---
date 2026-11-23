@@ -15,6 +15,8 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" hreflang="he" href="https://tuvyanoam-code.github.io/---/">
+<link rel="alternate" hreflang="en" href="https://tuvyanoam-code.github.io/---/en.html">
 <!-- meta:end -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#fff8f0">
@@ -25,7 +27,21 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/guest.css">
 <script src="config.js"></script>
+<script>
+  /* Pick the language before anything paints: ?lang= → saved choice → this page's language → config default. */
+  (function () {
+    var d = document.documentElement, l = '';
+    try { l = new URLSearchParams(location.search).get('lang') || ''; } catch (e) {}
+    if (l !== 'he' && l !== 'en') { try { l = JSON.parse(localStorage.getItem('wedding-lang')) || ''; } catch (e) {} }
+    if (l !== 'he' && l !== 'en') l = d.getAttribute('data-page-lang') || (window.WEDDING && window.WEDDING.defaultLang) || 'he';
+    d.lang = l;
+    d.dir = l === 'en' ? 'ltr' : 'rtl';
+    d.classList.add('i18n-pending');
+    setTimeout(function () { d.classList.remove('i18n-pending'); }, 3000);
+  })();
+</script>
 <script src="invitation/pages.js" onerror="window.INVITATION_PAGES=null"></script>
+<script src="js/i18n.js" defer></script>
 <script src="js/util.js" defer></script>
 <script src="js/api.js" defer></script>
 <script src="js/guest.js" defer></script>
@@ -43,12 +59,14 @@
 
 <main class="page">
 
+  <button class="lang-toggle" type="button" data-lang-toggle></button>
+
   <header class="hero">
     <p class="greeting" id="greeting" hidden></p>
-    <p class="sticker">מתחתנים!</p>
+    <p class="sticker" data-i18n="g.sticker"></p>
     <h1 class="names" id="names">
       <span class="name" data-i="0"></span>
-      <span class="amp" aria-label="ו">&amp;</span>
+      <span class="amp" data-i18n-aria="g.and">&amp;</span>
       <span class="name" data-i="1"></span>
     </h1>
     <div class="when">
@@ -56,22 +74,22 @@
       <p class="hdate" id="hdate"></p>
     </div>
     <p class="countdown" id="countdown" hidden></p>
-    <a class="hero-cta btn btn-primary" href="#rsvp" id="heroCta">אישור הגעה</a>
+    <a class="hero-cta btn btn-primary" href="#rsvp" id="heroCta" data-i18n="g.cta"></a>
   </header>
 
   <section class="invite" aria-labelledby="inviteTitle">
-    <h2 class="section-title" id="inviteTitle"><span>ההזמנה</span></h2>
-    <button class="invite-card" id="inviteCard" type="button" aria-label="פתיחת ההזמנה במסך מלא">
+    <h2 class="section-title" id="inviteTitle"><span data-i18n="g.inviteTitle"></span></h2>
+    <button class="invite-card" id="inviteCard" type="button" data-i18n-aria="g.openFull">
       <span class="tape tape-a" aria-hidden="true"></span>
       <span class="tape tape-b" aria-hidden="true"></span>
       <span class="invite-frame">
-        <img id="invitePreview" alt="ההזמנה לחתונה" decoding="async">
+        <img id="invitePreview" decoding="async">
         <span class="invite-placeholder" id="invitePlaceholder">
           <span class="ph-mark"></span>
-          <span>ההזמנה נטענת…</span>
+          <span data-i18n="g.loading"></span>
         </span>
       </span>
-      <span class="invite-hint" aria-hidden="true">לחצו להגדלה</span>
+      <span class="invite-hint" aria-hidden="true" data-i18n="g.tapZoom"></span>
     </button>
     <div class="invite-actions">
       <button class="btn" type="button" id="openViewer"></button>
@@ -82,57 +100,57 @@
   <section class="rsvp" id="rsvp" aria-labelledby="rsvpTitle">
     <div class="rsvp-card">
       <div class="rsvp-head">
-        <h2 id="rsvpTitle">אישור הגעה</h2>
+        <h2 id="rsvpTitle" data-i18n="g.rsvpTitle"></h2>
         <p class="rsvp-sub" id="rsvpSub"></p>
       </div>
 
       <form id="rsvpForm" novalidate>
         <fieldset class="choices">
-          <legend class="sr-only">האם תגיעו?</legend>
+          <legend class="sr-only" data-i18n="g.question"></legend>
           <label class="choice c-yes">
             <input type="radio" name="status" value="yes">
             <span class="choice-ico"></span>
-            <span class="choice-label">מגיעים!</span>
+            <span class="choice-label" data-i18n="g.yes"></span>
           </label>
           <label class="choice c-maybe">
             <input type="radio" name="status" value="maybe">
             <span class="choice-ico"></span>
-            <span class="choice-label">עוד לא בטוח</span>
+            <span class="choice-label" data-i18n="g.maybe"></span>
           </label>
           <label class="choice c-no">
             <input type="radio" name="status" value="no">
             <span class="choice-ico"></span>
-            <span class="choice-label">לא נוכל</span>
+            <span class="choice-label" data-i18n="g.no"></span>
           </label>
         </fieldset>
 
         <div class="rsvp-fields" id="rsvpFields">
           <label class="field">
-            <span>שם מלא</span>
-            <input class="input" name="name" id="name" autocomplete="name" placeholder="איך לרשום אתכם?" maxlength="80" required>
+            <span data-i18n="g.name"></span>
+            <input class="input" name="name" id="name" autocomplete="name" data-i18n-ph="g.namePh" maxlength="80" required>
           </label>
 
           <div class="field" id="countField">
-            <span id="countLabel">כמה תגיעו?</span>
+            <span id="countLabel" data-i18n="g.howMany"></span>
             <div class="stepper" role="group" aria-labelledby="countLabel">
-              <button type="button" class="step" data-step="1" aria-label="להוסיף אורח"></button>
+              <button type="button" class="step" data-step="1" data-i18n-aria="g.addGuest"></button>
               <output class="count" id="count" aria-live="polite">2</output>
-              <button type="button" class="step" data-step="-1" aria-label="להוריד אורח"></button>
+              <button type="button" class="step" data-step="-1" data-i18n-aria="g.removeGuest"></button>
             </div>
             <p class="count-words" id="countWords"></p>
           </div>
 
           <label class="field" id="phoneField">
-            <span>טלפון <em class="opt">(לא חובה)</em></span>
+            <span><span data-i18n="g.phone"></span> <em class="opt" data-i18n="g.optional"></em></span>
             <input class="input" name="phone" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="050-0000000" maxlength="30" dir="ltr">
           </label>
 
           <label class="field" id="noteField">
-            <span>ברכה לזוג או הערה <em class="opt">(לא חובה)</em></span>
-            <textarea class="input" name="note" id="note" maxlength="600" placeholder="מזל טוב! / טבעוני / מגיעים עם תינוק…"></textarea>
+            <span><span data-i18n="g.note"></span> <em class="opt" data-i18n="g.optional"></em></span>
+            <textarea class="input" name="note" id="note" maxlength="600" data-i18n-ph="g.notePh"></textarea>
           </label>
 
-          <button class="btn btn-primary btn-block submit" type="submit" id="submitBtn">שליחה</button>
+          <button class="btn btn-primary btn-block submit" type="submit" id="submitBtn"></button>
           <p class="form-error" id="formError" role="alert" hidden></p>
         </div>
       </form>
@@ -150,7 +168,7 @@
   </section>
 
   <section class="details" aria-labelledby="detailsTitle">
-    <h2 class="section-title" id="detailsTitle"><span>איפה ומתי</span></h2>
+    <h2 class="section-title" id="detailsTitle"><span data-i18n="g.whereWhen"></span></h2>
     <div class="detail-grid">
       <div class="detail-card">
         <div class="detail-ico ico-sun" aria-hidden="true"></div>
@@ -171,27 +189,27 @@
   </section>
 
   <section class="share" aria-labelledby="shareTitle">
-    <h2 class="section-title" id="shareTitle"><span>שתפו את ההזמנה</span></h2>
+    <h2 class="section-title" id="shareTitle"><span data-i18n="g.shareTitle"></span></h2>
     <div class="share-row" id="shareRow"></div>
   </section>
 
   <footer class="footer">
-    <p class="hand">נתראה ברחבה!</p>
+    <p class="hand" data-i18n="g.seeYou"></p>
     <p class="sign" id="sign"></p>
   </footer>
 </main>
 
-<a class="float-cta" id="floatCta" href="#rsvp" hidden>אישור הגעה</a>
+<a class="float-cta" id="floatCta" href="#rsvp" hidden data-i18n="g.cta"></a>
 
-<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="ההזמנה" hidden>
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="inviteTitle" hidden>
   <div class="viewer-bar">
-    <button class="vbtn" type="button" id="vClose" aria-label="סגירה"></button>
+    <button class="vbtn" type="button" id="vClose" data-i18n-aria="g.close"></button>
     <span class="viewer-pages" id="vPages"></span>
     <div class="viewer-tools">
-      <button class="vbtn" type="button" id="vZoomOut" aria-label="הקטנה"></button>
-      <button class="vbtn" type="button" id="vZoomIn" aria-label="הגדלה"></button>
-      <a class="vbtn" id="vDownload" aria-label="הורדת PDF" download></a>
-      <button class="vbtn" type="button" id="vShare" aria-label="שיתוף"></button>
+      <button class="vbtn" type="button" id="vZoomOut" data-i18n-aria="g.zoomOut"></button>
+      <button class="vbtn" type="button" id="vZoomIn" data-i18n-aria="g.zoomIn"></button>
+      <a class="vbtn" id="vDownload" data-i18n-aria="g.download" download></a>
+      <button class="vbtn" type="button" id="vShare" data-i18n-aria="g.share"></button>
     </div>
   </div>
   <div class="viewer-scroll" id="vScroll">

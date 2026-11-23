@@ -78,6 +78,10 @@ a {
 [hidden] {
   display: none !important;
 }
+/* Hidden for the moment it takes to put the chosen language's texts in place. */
+html.i18n-pending body {
+  visibility: hidden;
+}
 :focus-visible {
   outline: none;
   box-shadow: var(--focus);

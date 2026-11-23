@@ -66,6 +66,7 @@
       guest: clean(r.guest, 64),
       src: clean(r.src, 20),
       device: clean(r.device, 12),
+      lang: r.lang === 'en' ? 'en' : 'he',
     };
   }
 
@@ -179,6 +180,7 @@
 
   /* ---------- demo data generator (admin "fill with sample data" button) ---------- */
   function seed() {
+    const english = ['The Smith family', 'Daniel Brown', 'Emma & Jacob Miller', 'Sarah Levy'];
     const first = ['דנה', 'יוסי', 'מיכל', 'אבי', 'שירה', 'עומר', 'רוני', 'תמר', 'גל', 'הילה', 'אורי', 'נטע', 'עידו', 'מאיה', 'יונתן', 'ליאת', 'אלון', 'רותם', 'שקד', 'בן', 'קרן', 'אסף', 'ענבל', 'דור', 'יעל', 'ניר', 'ספיר', 'אייל', 'מור', 'טל'];
     const last = ['כהן', 'לוי', 'מזרחי', 'פרץ', 'ביטון', 'אברהם', 'פרידמן', 'שפירא', 'גולן', 'אזולאי', 'דהן', 'רוזן', 'בן דוד', 'קפלן', 'חדד'];
     const rnd = (a) => a[Math.floor(Math.random() * a.length)];
@@ -189,8 +191,10 @@
     const events = [];
     const srcs = ['wa', 'wa', 'wa', 'wa', 'sms', 'tg', 'copy', ''];
     for (let i = 0; i < 46; i++) {
-      const name = i % 3 === 0 ? `משפחת ${rnd(last)}` : `${rnd(first)} ${rnd(last)}`;
+      const en = i % 11 === 5 && english.length;
+      const name = en ? english.pop() : i % 3 === 0 ? `משפחת ${rnd(last)}` : `${rnd(first)} ${rnd(last)}`;
       const g = {
+        lang: en ? 'en' : 'he',
         id: W.uid(8),
         name,
         phone: '05' + Math.floor(20000000 + Math.random() * 79999999),
@@ -220,7 +224,7 @@
         rsvps.push({
           id: 'g:' + g.id, name: g.name, status, count: status === 'no' ? 0 : g.invited, phone: g.phone,
           note: Math.random() < 0.3 ? rnd(['מזל טוב!! מחכים לרקוד איתכם', 'נגיע בשמחה 💃', 'אוהבים אתכם, מזל טוב', 'מצטערים, נהיה בחו״ל. מזל טוב!']) : '',
-          guest: g.id, src, device, created: t, updated: t, edits: 0,
+          guest: g.id, src, device, created: t, updated: t, edits: 0, lang: g.lang,
         });
         events.push({ t, type: 'rsvp', visitor, guest: g.id, src, device, detail: `${status}:${status === 'no' ? 0 : g.invited}|${g.name}` });
       }

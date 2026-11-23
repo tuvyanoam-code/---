@@ -36,6 +36,7 @@
   }
 
   const pct = (v, total) => (total ? Math.round((v / total) * 100) : 0);
+  const unitOf = (opts, v) => (typeof opts.unit === 'function' ? opts.unit(v) : opts.unit || '');
   const empty = (el, text) => {
     el.innerHTML = `<div class="chart-empty">${W.esc(text)}</div>`;
   };
@@ -64,7 +65,7 @@
   Charts.segmented = (el, parts, opts = {}) => {
     const live = parts.filter((p) => p.value > 0);
     const total = live.reduce((s, p) => s + p.value, 0);
-    if (!total) return empty(el, opts.empty || 'עוד אין נתונים');
+    if (!total) return empty(el, opts.empty || W.t('c.noData'));
     el.innerHTML = '';
     const bar = document.createElement('div');
     bar.className = 'segbar';
@@ -78,7 +79,7 @@
       s.style.background = `var(${p.color})`;
       s.style.color = `var(${p.on})`;
       s.textContent = pct(p.value, total) + '%';
-      bindTip(s, `<b>${W.esc(p.label)}</b><br>${W.num(p.value)} ${W.esc(opts.unit || '')} · ${pct(p.value, total)}%`);
+      bindTip(s, `<b>${W.esc(p.label)}</b><br>${W.num(p.value)} ${W.esc(unitOf(opts, p.value))} · ${pct(p.value, total)}%`);
       bar.appendChild(s);
     });
     el.appendChild(bar);
@@ -101,7 +102,7 @@
   /* ---------- horizontal bars (RTL: grow from the right) ---------- */
   Charts.hbars = (el, rows, opts = {}) => {
     const max = Math.max(0, ...rows.map((r) => r.value));
-    if (!max) return empty(el, opts.empty || 'עוד אין נתונים');
+    if (!max) return empty(el, opts.empty || W.t('c.noData'));
     const base = opts.base != null ? opts.base : rows.reduce((s, r) => s + r.value, 0);
     el.innerHTML = '';
     const box = document.createElement('div');
@@ -130,7 +131,7 @@
 
   /* ---------- line (single series, cumulative) ---------- */
   Charts.line = (el, points, opts = {}) => {
-    if (!points.length || !points.some((p) => p.v > 0)) return empty(el, opts.empty || 'עוד אין נתונים');
+    if (!points.length || !points.some((p) => p.v > 0)) return empty(el, opts.empty || W.t('c.noData'));
     el.innerHTML = '';
     const width = Math.max(280, el.clientWidth);
     const height = opts.height || 210;
@@ -183,7 +184,8 @@
       dot.setAttribute('visibility', 'visible');
       const sx = r.left + (x(best.t) / width) * r.width;
       const sy = r.top + (y(best.v) / height) * r.height;
-      Charts.showTip(`<b>${W.esc(W.fmtDate(new Date(best.t), { day: 'numeric', month: 'long' }))}</b><br>${W.num(best.v)} ${W.esc(opts.unit || '')}${best.delta ? ` (+${W.num(best.delta)} ביום הזה)` : ''}`, sx, sy);
+      const extra = best.delta && opts.perDay ? ' ' + W.esc(opts.perDay(best.delta)) : '';
+      Charts.showTip(`<b>${W.esc(W.fmtDate(new Date(best.t), { day: 'numeric', month: 'long' }))}</b><br>${W.num(best.v)} ${W.esc(unitOf(opts, best.v))}${extra}`, sx, sy);
     };
     hit.addEventListener('pointermove', move);
     hit.addEventListener('pointerdown', move);
@@ -197,7 +199,7 @@
 
   /* ---------- columns (one per day) ---------- */
   Charts.columns = (el, bars, opts = {}) => {
-    if (!bars.some((b) => b.v > 0)) return empty(el, opts.empty || 'עוד אין נתונים');
+    if (!bars.some((b) => b.v > 0)) return empty(el, opts.empty || W.t('c.noData'));
     el.innerHTML = '';
     const width = Math.max(280, el.clientWidth);
     const height = opts.height || 210;
@@ -233,7 +235,7 @@
       const hit = svgEl('rect', { x: m.l + band * i, y: m.t, width: band, height: ih, fill: 'transparent' }, svg);
       const show = () => {
         const r = svg.getBoundingClientRect();
-        Charts.showTip(`<b>${W.esc(W.fmtDate(new Date(b.t), { weekday: 'short', day: 'numeric', month: 'long' }))}</b><br>${W.num(b.v)} ${W.esc(opts.unit || '')}`, r.left + (cx / width) * r.width, r.top + (y(b.v) / height) * r.height);
+        Charts.showTip(`<b>${W.esc(W.fmtDate(new Date(b.t), { weekday: 'short', day: 'numeric', month: 'long' }))}</b><br>${W.num(b.v)} ${W.esc(unitOf(opts, b.v))}`, r.left + (cx / width) * r.width, r.top + (y(b.v) / height) * r.height);
       };
       hit.addEventListener('pointerenter', show);
       hit.addEventListener('pointerdown', show);

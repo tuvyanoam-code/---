@@ -2,6 +2,11 @@
  * צד השרת של אתר החתונה — Google Apps Script שמחובר לגיליון Google Sheets.
  * כל אישור הגעה, כל צפייה וכל שיתוף נרשמים בגיליון, ולוח הניהול קורא משם.
  *
+ * The wedding site's backend: a Google Apps Script bound to a Google Sheet. Every RSVP, visit and share is
+ * written to the sheet, and the dashboard reads it from there. Setup: paste this file into Extensions → Apps
+ * Script, set ADMIN_PASSWORD, run setup once, then Deploy → New deployment → Web app (Execute as: Me,
+ * Who has access: Anyone) and put the /exec URL in config.js → backendUrl.
+ *
  * התקנה (פעם אחת, כ-5 דקות) — ההוראות המלאות ב-README.md:
  *  1. צרו גיליון חדש ב-Google Sheets ← תוספים (Extensions) ← Apps Script.
  *  2. מחקו את מה שיש שם, הדביקו את כל הקובץ הזה, ושנו את הסיסמה כאן למטה.
@@ -10,29 +15,29 @@
  *  5. העתיקו את כתובת ה-Web app (מסתיימת ב-/exec) לשדה backendUrl בקובץ config.js.
  */
 
-// סיסמה ללוח הניהול. שנו אותה לפני הפריסה!
+// סיסמה ללוח הניהול. שנו אותה לפני הפריסה! · Dashboard password — change it before deploying!
 const ADMIN_PASSWORD = 'change-me';
 
 const SHEETS = {
   rsvps: {
-    name: 'אישורי הגעה',
-    cols: ['id', 'updated', 'name', 'status', 'count', 'phone', 'note', 'guest', 'src', 'device', 'created', 'edits'],
-    headers: ['מזהה', 'עודכן', 'שם', 'תשובה', 'מספר מגיעים', 'טלפון', 'ברכה / הערה', 'מזהה מוזמן', 'מקור', 'מכשיר', 'נוצר', 'מספר עדכונים'],
+    name: 'אישורי הגעה · RSVPs',
+    cols: ['id', 'updated', 'name', 'status', 'count', 'phone', 'note', 'guest', 'src', 'device', 'created', 'edits', 'lang'],
+    headers: ['מזהה · ID', 'עודכן · Updated', 'שם · Name', 'תשובה · Reply', 'מגיעים · Guests', 'טלפון · Phone', 'ברכה · Note', 'מזהה מוזמן · Guest ID', 'מקור · Source', 'מכשיר · Device', 'נוצר · Created', 'עדכונים · Edits', 'שפה · Language'],
   },
   guests: {
-    name: 'מוזמנים',
-    cols: ['id', 'name', 'phone', 'side', 'invited', 'notes', 'created', 'sent'],
-    headers: ['מזהה', 'שם', 'טלפון', 'צד', 'מוזמנים', 'הערות', 'נוסף', 'נשלחה הזמנה'],
+    name: 'מוזמנים · Guests',
+    cols: ['id', 'name', 'phone', 'side', 'invited', 'notes', 'created', 'sent', 'lang'],
+    headers: ['מזהה · ID', 'שם · Name', 'טלפון · Phone', 'צד · Side', 'מוזמנים · Invited', 'הערות · Notes', 'נוסף · Added', 'נשלחה הזמנה · Sent', 'שפה · Language'],
   },
   events: {
-    name: 'פעילות',
+    name: 'פעילות · Activity',
     cols: ['t', 'type', 'visitor', 'guest', 'src', 'device', 'detail'],
-    headers: ['זמן', 'פעולה', 'מבקר', 'מזהה מוזמן', 'מקור', 'מכשיר', 'פרטים'],
+    headers: ['זמן · Time', 'פעולה · Action', 'מבקר · Visitor', 'מזהה מוזמן · Guest ID', 'מקור · Source', 'מכשיר · Device', 'פרטים · Details'],
   },
 };
 const TIME_COLS = { updated: 1, created: 1, sent: 1, t: 1 };
-const STATUS_HE = { yes: 'מגיעים', no: 'לא מגיעים', maybe: 'אולי' };
-const STATUS_EN = { 'מגיעים': 'yes', 'לא מגיעים': 'no', 'אולי': 'maybe' };
+const STATUS_HE = { yes: 'מגיעים · Coming', no: 'לא מגיעים · Not coming', maybe: 'אולי · Maybe' };
+const STATUS_EN = { 'מגיעים · Coming': 'yes', 'לא מגיעים · Not coming': 'no', 'אולי · Maybe': 'maybe', 'מגיעים': 'yes', 'לא מגיעים': 'no', 'אולי': 'maybe' };
 const EVENT_TYPES = ['view', 'open_invite', 'download_pdf', 'share', 'copy_link', 'nav', 'calendar', 'rsvp', 'rsvp_start'];
 
 /* ---------------- entry points ---------------- */
@@ -110,6 +115,7 @@ function saveRsvp(input, byAdmin) {
     guest: clean(input.guest, 64),
     src: clean(input.src, 20) || (byAdmin ? 'admin' : ''),
     device: clean(input.device, 12),
+    lang: input.lang === 'en' ? 'en' : 'he',
   };
   if (!r.id || !r.name) return { ok: false, error: 'missing' };
   let saved;
@@ -137,7 +143,7 @@ function publicGuest(id) {
   if (!row) return { ok: true, guest: null };
   const g = fromRow('guests', sh.getRange(row, 1, 1, SHEETS.guests.cols.length).getValues()[0]);
   // Only what the invitation page needs to greet the guest.
-  return { ok: true, guest: { id: g.id, name: g.name, invited: Number(g.invited) || 0 } };
+  return { ok: true, guest: { id: g.id, name: g.name, invited: Number(g.invited) || 0, lang: g.lang || 'he' } };
 }
 
 /* ---------------- admin ---------------- */
@@ -169,6 +175,7 @@ function admin(body) {
             notes: clean(input.notes, 300),
             created: Number(input.created) || now,
             sent: Number(input.sent) || 0,
+            lang: input.lang === 'en' ? 'en' : 'he',
           };
           if (!g.name) return;
           if (ids[g.id]) sh.getRange(ids[g.id], 1, 1, SHEETS.guests.cols.length).setValues([toRow('guests', g)]);
@@ -209,7 +216,7 @@ function admin(body) {
 function setup() {
   Object.keys(SHEETS).forEach((key) => sheet(key));
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const def = ss.getSheetByName('Sheet1') || ss.getSheetByName('גיליון1');
+  const def = ss.getSheetByName('Sheet1') || ss.getSheetByName('גיליון1') || ss.getSheetByName('גיליון 1');
   if (def && ss.getSheets().length > 1 && def.getLastRow() === 0) ss.deleteSheet(def);
   return 'מוכן! עכשיו: פריסה ← פריסה חדשה ← Web app';
 }
