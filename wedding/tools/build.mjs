@@ -125,7 +125,8 @@ function renderPdf(lang) {
 
 const manifest = { he: renderPdf('he'), en: renderPdf('en') };
 
-// One PDF for both languages: each language shows its own pages (pageOrder in config.js).
+// One PDF for both languages: pageOrder says which pages each language shows, previewPage which page its
+// WhatsApp preview shows.
 function reorder(set, order) {
   if (!set || !Array.isArray(order) || !order.length) return set;
   // Only the listed pages, in that order (the downloadable PDF stays complete).
@@ -134,13 +135,15 @@ function reorder(set, order) {
 }
 const allPages = manifest.he;
 if (manifest.he) manifest.he = reorder(allPages, cfg.pageOrder && cfg.pageOrder.he);
+const previewOf = (lang, set) => {
+  const n = cfg.previewPage && cfg.previewPage[lang];
+  return (n && allPages && allPages.pages[n - 1]) || (set && set.pages[0]);
+};
 if (!manifest.en && allPages && cfg.pageOrder && cfg.pageOrder.en) {
   manifest.en = reorder(allPages, cfg.pageOrder.en);
-  const first = manifest.en.pages[0];
-  if (first && first !== manifest.he.pages[0] && magick) {
-    // The English preview shows the page English speakers see first.
-    const src = join(root, first.src2x.replace(/\?.*$/, ''));
-    renderOg(src, 'og-en.jpg');
+  const preview = previewOf('en', manifest.en);
+  if (preview && preview !== previewOf('he', manifest.he) && magick) {
+    renderOg(join(root, preview.src2x.replace(/\?.*$/, '')), 'og-en.jpg');
     manifest.en.og = `invitation/og-en.jpg?v=${manifest.en.v}`;
   }
 }
