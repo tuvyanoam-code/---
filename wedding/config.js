@@ -47,6 +47,8 @@ window.WEDDING = {
   // כתובת ה-Web App של Google Apps Script (ראו README.md).
   // כל עוד זה ריק האתר עובד במצב הדגמה: הנתונים נשמרים רק בדפדפן שלכם.
   backendUrl: 'https://script.google.com/macros/s/AKfycbxJgYGFh3sfd0c2GI9XxJq4fHH2A32M4sixlgD5R0S8Y_J3q0ss1_XNt35MGD6Zhs1n/exec',
+  // הגיליון שבו נשמרים הנתונים (נפתח רק בחשבון גוגל שלכם). לוח הניהול מציע אותו כשהחיבור חוסם את קריאת הנתונים.
+  sheetUrl: 'https://docs.google.com/spreadsheets/d/1tvAXSrpocDlLXmDGuvio9qT1wUDUULaU7sQjbazLSSA/edit',
 
   // נוסח הודעות השיתוף. {couple} = השמות, {link} = הקישור, {name} = שם המוזמן, {date} = התאריך
   shareText: {

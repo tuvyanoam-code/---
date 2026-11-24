@@ -181,6 +181,24 @@ html.i18n-pending body {
 .btn-block {
   width: 100%;
 }
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.85;
+}
+.btn.loading::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: btnspin 0.8s linear infinite;
+}
+@keyframes btnspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ---------- forms ---------- */
 .field {

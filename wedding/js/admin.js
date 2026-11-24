@@ -1081,8 +1081,17 @@
     } catch (e) {
       if (e.code === 'bad_password') return 'bad';
       if (e.code === 'password_not_set') return t('a.pwNotSet');
+      if (e.code === 'unreadable') return 'blocked';
       return t('a.noServer');
     }
+  }
+
+  // The reply host is blocked on this connection: say so plainly and offer the sheet itself.
+  function showBlocked() {
+    showLogin('');
+    const box = $('#loginError');
+    box.hidden = false;
+    box.innerHTML = `${esc(t('a.blocked'))}${cfg.sheetUrl ? ` <a href="${esc(cfg.sheetUrl)}" target="_blank" rel="noopener">${esc(t('a.openSheet'))}</a>` : ''}`;
   }
 
   function showLogin(err) {
@@ -1101,15 +1110,18 @@
       e.preventDefault();
       const btn = $('#loginBtn');
       btn.disabled = true;
+      btn.classList.add('loading');
       const err = await tryLogin($('#password').value);
       btn.disabled = false;
-      if (err) showLogin(err === 'bad' ? t('a.badPw') : err);
+      btn.classList.remove('loading');
+      if (err === 'blocked') showBlocked();
+      else if (err) showLogin(err === 'bad' ? t('a.badPw') : err);
     });
     if (api.mode === 'demo') {
       showApp();
       load();
     } else if (password) {
-      tryLogin(password).then((err) => err && showLogin(err === 'bad' ? '' : err));
+      tryLogin(password).then((err) => (err === 'blocked' ? showBlocked() : err && showLogin(err === 'bad' ? '' : err)));
     } else showLogin('');
   }
 

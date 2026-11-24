@@ -161,6 +161,11 @@ body.admin {
   margin: 0;
   color: var(--berry);
   font-size: 14px;
+  line-height: 1.5;
+}
+.form-error a {
+  font-weight: 700;
+  color: inherit;
 }
 
 /* ---------- top bar ---------- */

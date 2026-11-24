@@ -29,9 +29,25 @@
         throw err;
       }
       return data;
+    } catch (e) {
+      // No readable answer: the request may well have reached the script, but its reply (served from
+      // script.googleusercontent.com) was blocked or never came, e.g. behind a filtered connection or a blocker.
+      if (!e.code) e.code = 'unreadable';
+      throw e;
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  // Delivers a request without reading the reply. The script runs on the request itself, so this saves data
+  // even where the reply host is blocked. Sending twice is harmless: a reply is saved under its own id.
+  function sendBlind(body) {
+    const json = JSON.stringify(body);
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(url, new Blob([json], { type: 'text/plain;charset=utf-8' }))) return true;
+    } catch (e) {}
+    fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: json, keepalive: true }).catch(() => {});
+    return true;
   }
 
   /* ---------- demo store (same shapes as the sheet) ---------- */
@@ -74,7 +90,15 @@
   api.rsvp = async (data) => {
     const r = normalizeRsvp(data);
     if (!r.id || !r.name) throw new Error('missing');
-    if (api.mode === 'live') return (await post({ action: 'rsvp', rsvp: r })).rsvp;
+    if (api.mode === 'live') {
+      try {
+        return (await post({ action: 'rsvp', rsvp: r }, { timeout: 8000 })).rsvp;
+      } catch (e) {
+        if (e.code !== 'unreadable' || navigator.onLine === false) throw e;
+        sendBlind({ action: 'rsvp', rsvp: r });
+        return Object.assign({ unconfirmed: true }, r);
+      }
+    }
     const db = demo.load();
     const now = Date.now();
     const prev = db.rsvps.find((x) => x.id === r.id);
@@ -137,7 +161,7 @@
 
   /* ---------- admin ---------- */
   api.admin = async (op, payload, password) => {
-    if (api.mode === 'live') return post(Object.assign({ action: 'admin', op, password }, payload || {}), { timeout: 30000 });
+    if (api.mode === 'live') return post(Object.assign({ action: 'admin', op, password }, payload || {}), { timeout: op === 'data' ? 15000 : 30000 });
     const db = demo.load();
     const now = Date.now();
     let out = {};
