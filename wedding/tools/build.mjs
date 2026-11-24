@@ -125,16 +125,17 @@ function renderPdf(lang) {
 
 const manifest = { he: renderPdf('he'), en: renderPdf('en') };
 
-// One PDF for both languages: each language can show its own page first (pageOrder in config.js).
+// One PDF for both languages: each language shows its own pages (pageOrder in config.js).
 function reorder(set, order) {
   if (!set || !Array.isArray(order) || !order.length) return set;
+  // Only the listed pages, in that order (the downloadable PDF stays complete).
   const pages = order.map((n) => set.pages[n - 1]).filter(Boolean);
-  set.pages.forEach((p) => pages.includes(p) || pages.push(p));
-  return Object.assign({}, set, { pages });
+  return Object.assign({}, set, { pages: pages.length ? pages : set.pages });
 }
-if (manifest.he) manifest.he = reorder(manifest.he, cfg.pageOrder && cfg.pageOrder.he);
-if (!manifest.en && manifest.he && cfg.pageOrder && cfg.pageOrder.en) {
-  manifest.en = reorder(manifest.he, cfg.pageOrder.en);
+const allPages = manifest.he;
+if (manifest.he) manifest.he = reorder(allPages, cfg.pageOrder && cfg.pageOrder.he);
+if (!manifest.en && allPages && cfg.pageOrder && cfg.pageOrder.en) {
+  manifest.en = reorder(allPages, cfg.pageOrder.en);
   const first = manifest.en.pages[0];
   if (first && first !== manifest.he.pages[0] && magick) {
     // The English preview shows the page English speakers see first.

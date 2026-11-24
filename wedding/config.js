@@ -19,12 +19,6 @@ window.WEDDING = {
   // התאריך בתוך הודעות השיתוף
   dateText: { he: 'ביום שלישי, י״ט טבת ה׳תשפ״ז', en: 'on Tuesday, the 19th of Tevet, December 29, 2026' },
 
-  // סדר הערב (אפשר למחוק או להוסיף שורות)
-  schedule: [
-    { time: '18:00', label: { he: 'קבלת פנים', en: 'Kabbalat Panim' } },
-    { time: '19:00', label: { he: 'חופה', en: 'Chuppah' } },
-  ],
-
   venue: {
     name: { he: 'גן האירועים ׳אלה׳', en: 'Ela Events' },
     address: { he: 'רחוב האלופים 1, נס ציונה', en: "HaAlufim 1, Nes Tziona" },
@@ -43,8 +37,9 @@ window.WEDDING = {
 
   // קובץ ההזמנה. מחליפים את invitation.pdf בתיקייה הזו — וזהו.
   invitationPdf: { he: 'invitation.pdf', en: '' },
-  // סדר העמודים שמוצג לכל שפה (העמוד הראשון הוא גם התמונה בתצוגה המקדימה בוואטסאפ)
-  pageOrder: { he: [1, 2, 3, 4], en: [4, 1, 2, 3] },
+  // אילו עמודים מוצגים בכל שפה ובאיזה סדר (הראשון הוא גם התמונה בתצוגה המקדימה בוואטסאפ).
+  // קובץ ה-PDF להורדה תמיד מלא.
+  pageOrder: { he: [1, 2, 3], en: [4] },
 
   // הכתובת שבה האתר מתפרסם (משמשת לקישורי השיתוף ולתצוגה המקדימה בוואטסאפ)
   siteUrl: 'https://tuvyanoam-code.github.io/---/',

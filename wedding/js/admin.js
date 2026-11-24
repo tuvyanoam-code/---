@@ -323,7 +323,8 @@
     $('#heroNum').textContent = W.num(m.yesPeople);
     $('#heroUnit').textContent = t('a.pplWord', { n: m.yesPeople });
     const parts = [t('a.replies', { n: yesN })];
-    if (m.invitedPeople) parts.push(t('a.heroOf', { n: m.invitedPeople, p: Math.round((m.yesPeople / m.invitedPeople) * 100) }));
+    // Replies through the general link can outnumber the guest list; a share above 100% would only confuse.
+    if (m.invitedPeople && m.yesPeople <= m.invitedPeople) parts.push(t('a.heroOf', { n: m.invitedPeople, p: Math.round((m.yesPeople / m.invitedPeople) * 100) }));
     if (m.maybePeople) parts.push(t('a.heroMaybe', { n: m.maybePeople }));
     $('#heroSub').textContent = parts.join(' · ');
     const meter = $('#heroMeter');

@@ -53,42 +53,25 @@
 
 <main class="page">
 
-  <p class="bsd" data-i18n="g.bsd"></p>
-  <button class="lang-toggle" type="button" data-lang-toggle></button>
+  <div class="topline">
+    <p class="bsd" data-i18n="g.bsd"></p>
+    <button class="lang-toggle" type="button" data-lang-toggle></button>
+  </div>
+  <p class="greeting" id="greeting" hidden></p>
 
-  <header class="hero">
-    <p class="greeting" id="greeting" hidden></p>
-    <p class="verse" data-i18n="g.verse"></p>
-    <p class="invite-line" data-i18n="g.inviteLine"></p>
-    <h1 class="names" id="names">
-      <span class="name" data-i="0"></span>
-      <span class="sprig"><svg viewBox="0 0 240 28" aria-hidden="true" focusable="false"><path d="M8 15c40-4 80-6 116-2s76 6 108 1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><g fill="currentColor" opacity=".85"><ellipse cx="30" cy="10.5" rx="7" ry="2.4" transform="rotate(-24 30 10.5)"/><ellipse cx="40" cy="18" rx="7" ry="2.4" transform="rotate(22 40 18)"/><ellipse cx="58" cy="9" rx="7.5" ry="2.5" transform="rotate(-20 58 9)"/><ellipse cx="70" cy="17" rx="7.5" ry="2.5" transform="rotate(20 70 17)"/><ellipse cx="88" cy="8.5" rx="8" ry="2.6" transform="rotate(-16 88 8.5)"/><ellipse cx="100" cy="16.5" rx="8" ry="2.6" transform="rotate(16 100 16.5)"/><circle cx="120" cy="13" r="2.6"/><ellipse cx="140" cy="8.5" rx="8" ry="2.6" transform="rotate(16 140 8.5)"/><ellipse cx="152" cy="17" rx="8" ry="2.6" transform="rotate(-16 152 17)"/><ellipse cx="170" cy="9" rx="7.5" ry="2.5" transform="rotate(20 170 9)"/><ellipse cx="182" cy="17.5" rx="7.5" ry="2.5" transform="rotate(-20 182 17.5)"/><ellipse cx="200" cy="10" rx="7" ry="2.4" transform="rotate(24 200 10)"/><ellipse cx="211" cy="18" rx="7" ry="2.4" transform="rotate(-22 211 18)"/></g></svg></span>
-      <span class="name" data-i="1"></span>
-    </h1>
-    <div class="when">
-      <p class="date" id="date"></p>
-      <p class="hdate" id="hdate"></p>
-      <p class="venue-line" id="venueLine"></p>
+  <!-- The invitation itself is the page: no retyped copy of it. -->
+  <section class="invitation" aria-labelledby="pageTitle">
+    <h1 class="sr-only" id="pageTitle"></h1>
+    <div class="book" id="book" tabindex="0" role="group"></div>
+    <div class="book-nav" id="bookNav" hidden>
+      <button class="nav-btn" type="button" id="prevPage"></button>
+      <span class="dots" id="dots" aria-hidden="true"></span>
+      <span class="sr-only" id="pageStatus" aria-live="polite"></span>
+      <button class="nav-btn" type="button" id="nextPage"></button>
     </div>
-    <p class="countdown" id="countdown" hidden></p>
-    <a class="hero-cta btn btn-primary" href="#rsvp" id="heroCta" data-i18n="g.cta"></a>
-  </header>
-
-  <section class="invite" aria-labelledby="inviteTitle">
-    <h2 class="section-title" id="inviteTitle"><span data-i18n="g.inviteTitle"></span></h2>
-    <button class="invite-card" id="inviteCard" type="button" data-i18n-aria="g.openFull">
-      <span class="invite-frame">
-        <img id="invitePreview" decoding="async">
-        <span class="invite-placeholder" id="invitePlaceholder">
-          <span class="ph-mark"></span>
-          <span data-i18n="g.loading"></span>
-        </span>
-      </span>
-      <span class="invite-hint" aria-hidden="true"><span data-i18n="g.tapZoom"></span><span class="pages-count" id="pagesCount"></span></span>
-    </button>
+    <p class="book-hint" id="bookHint"></p>
     <div class="invite-actions">
-      <button class="btn" type="button" id="openViewer"></button>
-      <a class="btn" id="downloadPdf" download></a>
+      <a class="btn btn-sm btn-ghost" id="downloadPdf" download></a>
     </div>
   </section>
 
@@ -162,26 +145,8 @@
     </div>
   </section>
 
-  <section class="details" aria-labelledby="detailsTitle">
-    <h2 class="section-title" id="detailsTitle"><span data-i18n="g.whereWhen"></span></h2>
-    <div class="detail-grid">
-      <div class="detail-card">
-        <div class="detail-ico ico-sun" aria-hidden="true"></div>
-        <h3 id="dDate"></h3>
-        <p class="address" id="dDateSub"></p>
-        <ul class="schedule" id="schedule"></ul>
-        <div class="row-actions" id="calActions"></div>
-      </div>
-      <div class="detail-card">
-        <div class="detail-ico ico-mint" aria-hidden="true"></div>
-        <h3 id="dVenue"></h3>
-        <p class="address" id="dAddress"></p>
-        <div class="row-actions">
-          <a class="btn btn-sm" id="waze" target="_blank" rel="noopener"></a>
-          <a class="btn btn-sm" id="maps" target="_blank" rel="noopener"></a>
-        </div>
-      </div>
-    </div>
+  <section class="practical" data-i18n-aria="g.practical">
+    <div class="practical-row" id="practical"></div>
   </section>
 
   <section class="share" aria-labelledby="shareTitle">
@@ -189,11 +154,6 @@
     <div class="share-row" id="shareRow"></div>
   </section>
 
-  <footer class="footer">
-    <p class="mazal" data-i18n="g.mazal"></p>
-    <p class="blessing" data-i18n="g.seeYou"></p>
-    <p class="sign" id="sign"></p>
-  </footer>
 </main>
 
 <a class="float-cta" id="floatCta" href="#rsvp" hidden data-i18n="g.cta"></a>

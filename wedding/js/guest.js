@@ -28,33 +28,8 @@
   const rsvpId = guestId ? 'g:' + guestId : (saved && saved.id) || W.uid(12);
   const rsvpCfg = Object.assign({ maxGuests: 10, askPhone: true, askNote: true }, cfg.rsvp || {});
 
-  /* ---------- hero ---------- */
-  document.querySelectorAll('.names .name').forEach((el) => {
-    el.textContent = W.couple()[+el.dataset.i] || '';
-  });
-  $('#names').setAttribute('aria-label', W.coupleText);
-  $('#sign').textContent = W.coupleText;
-  const d = W.eventDate;
-  if (d) {
-    // The date as written in the invitation when given, otherwise computed.
-    $('#date').textContent = W.L(cfg.dateLine) || `${W.longDate(d)} · ${W.fmtTime(W.timeOf(d))}`;
-    $('#hdate').textContent = W.L(cfg.dateSub) || W.hebrewDate(d);
-    const left = W.daysUntil(d);
-    const cd = $('#countdown');
-    if (left > 1) {
-      cd.innerHTML = W.t('g.daysLeft', { n: `<b>${W.num(left)}</b>` });
-      cd.hidden = false;
-    } else if (left === 1) {
-      cd.innerHTML = `<b>${W.esc(W.t('g.tomorrow'))}</b>`;
-      cd.hidden = false;
-    } else if (left === 0) {
-      cd.innerHTML = `<b>${W.esc(W.t('g.today'))}</b>`;
-      cd.hidden = false;
-    }
-  }
-
-  const venue = cfg.venue || {};
-  $('#venueLine').textContent = [W.L(venue.name), W.L(venue.address).split(',').pop().trim()].filter(Boolean).join(', ');
+  /* ---------- title ---------- */
+  $('#pageTitle').textContent = W.t('g.ogTitle', { couple: W.coupleText });
 
   if (guestId) {
     api.guest(guestId).then((g) => {
@@ -75,11 +50,6 @@
   const pdfUrl = pagesSet.pdf || W.L(cfg.invitationPdf) || 'invitation.pdf';
   const pdfName = W.t('g.pdfName', { couple: W.coupleText });
   const pages = pagesSet.pages || [];
-  $('#invitePreview').alt = W.t('g.inviteAlt');
-  const preview = $('#invitePreview');
-  const placeholder = $('#invitePlaceholder');
-
-  $('#openViewer').innerHTML = `${I.eye}<span>${W.esc(W.t('g.view'))}</span>`;
   const dl = $('#downloadPdf');
   dl.innerHTML = `${I.download}<span>${W.esc(W.t('g.download'))}</span>`;
   [dl, $('#vDownload')].forEach((a) => {
@@ -93,29 +63,183 @@
   $('#vZoomOut').innerHTML = I.zoomOut;
   $('#vShare').innerHTML = I.share;
 
-  if (pages.length > 1) $('#pagesCount').textContent = W.t('g.pages', { n: pages.length });
-  if (pages.length) {
-    const p = pages[0];
-    preview.width = p.w;
-    preview.height = p.h;
-    preview.src = p.src;
-    if (p.src2x) preview.srcset = `${p.src} 1x, ${p.src2x} 2x`;
-    preview.hidden = true;
-    const show = () => {
-      preview.hidden = false;
-      placeholder.hidden = true;
-    };
-    if (preview.complete && preview.naturalWidth) show();
-    preview.addEventListener('load', show);
-    preview.addEventListener('error', () => previewFailed());
-  } else {
-    preview.hidden = true;
-    previewFailed();
+  /* ---------- the invitation as a small book: drag to turn the page, tap to zoom ---------- */
+  // Hebrew books turn right-to-left (spine on the right), English left-to-right (spine on the left).
+  const bookEl = $('#book');
+  const rtl = W.rtl;
+  let current = 0;
+  let turnedOnce = false;
+  const leaves = [];
+
+  function buildBook() {
+    if (!pages.length) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn-primary';
+      b.innerHTML = `${I.eye}<span>${W.esc(W.t('g.tapOpen'))}</span>`;
+      b.addEventListener('click', () => openViewer(0));
+      bookEl.replaceWith(b);
+      return;
+    }
+    bookEl.style.aspectRatio = `${pages[0].w} / ${pages[0].h}`;
+    bookEl.classList.toggle('rtl', rtl);
+    bookEl.setAttribute('aria-label', W.t('g.book', { n: pages.length }));
+    pages.forEach((p, i) => {
+      const leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      const front = document.createElement('div');
+      front.className = 'face front';
+      const img = document.createElement('img');
+      img.width = p.w;
+      img.height = p.h;
+      img.alt = i === 0 ? W.t('g.inviteAlt') : W.t('g.page', { n: i + 1 });
+      img.decoding = 'async';
+      img.loading = i < 2 ? 'eager' : 'lazy';
+      if (i === 0) img.fetchPriority = 'high';
+      img.draggable = false;
+      img.src = p.src;
+      if (p.src2x) img.srcset = `${p.src} 1x, ${p.src2x} 2x`;
+      front.appendChild(img);
+      const back = document.createElement('div');
+      back.className = 'face back';
+      leaf.append(front, back);
+      bookEl.appendChild(leaf);
+      leaves.push(leaf);
+    });
+    if (pages.length > 1) {
+      $('#bookNav').hidden = false;
+      $('#prevPage').innerHTML = I.chevronLeft;
+      $('#nextPage').innerHTML = I.chevronRight;
+      $('#prevPage').setAttribute('aria-label', W.t('g.prevPage'));
+      $('#nextPage').setAttribute('aria-label', W.t('g.nextPage'));
+      $('#dots').innerHTML = pages.map(() => '<i></i>').join('');
+      $('#prevPage').addEventListener('click', () => turnTo(current - 1));
+      $('#nextPage').addEventListener('click', () => turnTo(current + 1));
+    }
+    $('#bookHint').textContent = W.t(pages.length > 1 ? 'g.hintFlip' : 'g.hintZoom');
+    layout();
+    // A gentle peek of the first page's edge, so it is clear the invitation can be turned.
+    if (pages.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTimeout(() => {
+        if (turnedOnce) return;
+        setAngle(leaves[0], dirSign() * 26, true);
+        setTimeout(() => !turnedOnce && setAngle(leaves[0], 0, true), 650);
+      }, 1400);
+    }
   }
-  function previewFailed() {
-    placeholder.classList.add('failed');
-    placeholder.lastElementChild.textContent = W.t('g.tapOpen');
+
+  const dirSign = () => (rtl ? 1 : -1); // forward rotation: +180° around the right spine, -180° around the left
+
+  function setAngle(leaf, deg, animate) {
+    leaf.style.transition = animate ? '' : 'none';
+    leaf.style.transform = `rotateY(${deg}deg)`;
+    leaf.style.setProperty('--shade', (Math.abs(Math.sin((deg * Math.PI) / 180)) * 0.35).toFixed(3));
   }
+
+  // Pages before `current` are turned over; the rest lie flat, the next one under the current.
+  // A page being turned stays on top until its turn has played.
+  let lifted = null;
+  let liftTimer = 0;
+  const restZ = (i) => (i < current ? i + 1 : leaves.length * 2 - i);
+  function lift(leaf) {
+    lifted = leaf;
+    clearTimeout(liftTimer);
+    liftTimer = setTimeout(() => {
+      lifted = null;
+      leaves.forEach((l, i) => (l.style.zIndex = restZ(i)));
+    }, 800);
+  }
+  function layout(animate) {
+    leaves.forEach((leaf, i) => {
+      const turned = i < current;
+      leaf.style.zIndex = leaf === lifted ? leaves.length * 3 : restZ(i);
+      leaf.classList.toggle('turned', turned);
+      setAngle(leaf, turned ? dirSign() * 180 : 0, animate);
+    });
+    if (pages.length > 1) {
+      $('#prevPage').disabled = current === 0;
+      $('#nextPage').disabled = current === leaves.length - 1;
+      $('#dots').querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i === current));
+      $('#pageStatus').textContent = W.t('g.pageOf', { a: current + 1, b: leaves.length });
+    }
+  }
+
+  function turnTo(i) {
+    const next = Math.max(0, Math.min(leaves.length - 1, i));
+    if (next === current) return;
+    lift(next > current ? leaves[current] : leaves[next]);
+    current = next;
+    markTurned();
+    requestAnimationFrame(() => layout(true));
+  }
+
+  function markTurned() {
+    if (turnedOnce) return;
+    turnedOnce = true;
+    api.track('open_invite', 'flip');
+  }
+
+  // Dragging: the leaf follows the finger; let go past a quarter of the width (or flick) to turn it.
+  let drag = null;
+  bookEl.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || !leaves.length) return;
+    drag = { x: e.clientX, y: e.clientY, t: performance.now(), dx: 0, leaf: null, forward: null, active: false, id: e.pointerId };
+  });
+  bookEl.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (!drag.active) {
+      if (Math.abs(drag.dx) < 8 || Math.abs(drag.dx) < Math.abs(dy)) return;
+      const forward = rtl ? drag.dx > 0 : drag.dx < 0;
+      if ((forward && current >= leaves.length - 1) || (!forward && current === 0)) return;
+      drag.active = true;
+      drag.forward = forward;
+      drag.leaf = forward ? leaves[current] : leaves[current - 1];
+      drag.leaf.classList.remove('turned');
+      lift(drag.leaf);
+      clearTimeout(liftTimer);
+      bookEl.setPointerCapture(e.pointerId);
+    }
+    const w = bookEl.clientWidth;
+    // A little ahead of the finger, so the page lifts visibly from the first movement.
+    const p = Math.pow(Math.max(0, Math.min(1, Math.abs(drag.dx) / w)), 0.8);
+    const deg = drag.forward ? dirSign() * 180 * p : dirSign() * 180 * (1 - p);
+    setAngle(drag.leaf, deg, false);
+  });
+  const endDrag = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag;
+    drag = null;
+    if (!d.active) {
+      // A tap, not a drag: open the page large for zooming.
+      if (e.type === 'pointerup' && Math.abs(d.dx) < 8) openViewer(current);
+      return;
+    }
+    const w = bookEl.clientWidth;
+    const speed = Math.abs(d.dx) / Math.max(1, performance.now() - d.t);
+    const done = Math.abs(d.dx) > w * 0.25 || speed > 0.5;
+    if (done) {
+      current += d.forward ? 1 : -1;
+      markTurned();
+    }
+    lift(d.leaf);
+    layout(true);
+  };
+  bookEl.addEventListener('pointerup', endDrag);
+  bookEl.addEventListener('pointercancel', endDrag);
+  bookEl.addEventListener('keydown', (e) => {
+    const nextKey = rtl ? 'ArrowLeft' : 'ArrowRight';
+    const prevKey = rtl ? 'ArrowRight' : 'ArrowLeft';
+    if (e.key === nextKey) turnTo(current + 1);
+    else if (e.key === prevKey) turnTo(current - 1);
+    else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openViewer(current);
+    } else return;
+    e.preventDefault();
+  });
+  buildBook();
 
   const viewer = $('#viewer');
   const wrap = $('#vWrap');
@@ -176,13 +300,14 @@
     $('#vZoomIn').disabled = zoomIdx === zoomLevels.length - 1;
   }
 
-  function openViewer() {
+  function openViewer(index) {
     buildViewer();
     lastFocus = document.activeElement;
     viewer.hidden = false;
     document.body.style.overflow = 'hidden';
     setZoom(0);
-    scroller.scrollTop = 0;
+    const target = wrap.children[index || 0];
+    scroller.scrollTop = target && index ? target.offsetTop - 4 : 0;
     $('#vClose').focus();
     history.pushState({ viewer: true }, '');
     api.track('open_invite');
@@ -194,8 +319,6 @@
     if (lastFocus) lastFocus.focus();
     if (!fromPop && history.state && history.state.viewer) history.back();
   }
-  $('#inviteCard').addEventListener('click', openViewer);
-  $('#openViewer').addEventListener('click', openViewer);
   $('#vClose').addEventListener('click', () => closeViewer(false));
   $('#vZoomIn').addEventListener('click', () => setZoom(zoomIdx + 1));
   $('#vZoomOut').addEventListener('click', () => setZoom(zoomIdx - 1));
@@ -220,20 +343,19 @@
 
   /* ---------- floating RSVP button ---------- */
   const floatCta = $('#floatCta');
-  const vis = { hero: true, rsvp: false };
+  const vis = { rsvp: false };
   function updateFloat() {
-    const hide = vis.hero || vis.rsvp || !!saved;
+    const hide = vis.rsvp || !!saved;
     floatCta.hidden = false;
     floatCta.classList.toggle('away', hide);
   }
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
-        vis[e.target === $('#heroCta') ? 'hero' : 'rsvp'] = e.isIntersecting;
+        vis.rsvp = e.isIntersecting;
       });
       updateFloat();
     });
-    io.observe($('#heroCta'));
     io.observe($('#rsvp'));
   }
 
@@ -392,55 +514,33 @@
     showThanks(false);
   } else syncStatus();
 
-  /* ---------- where & when ---------- */
-  if (d) {
-    $('#dDate').textContent = W.L(cfg.dateLine) || W.longDate(d);
-    $('#dDateSub').textContent = W.L(cfg.dateSub) || W.hebrewDate(d);
-  }
-  const sched = $('#schedule');
-  (cfg.schedule || []).forEach((s) => {
-    const li = document.createElement('li');
-    const t = document.createElement('time');
-    t.textContent = W.fmtTime(s.time);
-    const span = document.createElement('span');
-    span.textContent = W.L(s.label);
-    li.append(t, span);
-    sched.appendChild(li);
-  });
-  const v = cfg.venue || {};
-  $('#dVenue').textContent = W.L(v.name);
-  $('#dAddress').textContent = W.L(v.address);
-  document.querySelectorAll('.detail-card .detail-ico')[0].innerHTML = I.calendar;
-  document.querySelectorAll('.detail-card .detail-ico')[1].innerHTML = I.pin;
+  /* ---------- what the invitation itself can't do: navigate and add to the calendar ---------- */
+  const practical = $('#practical');
+  const action = (href, icon, label, onClick, newTab) => {
+    const el = document.createElement(href ? 'a' : 'button');
+    el.className = 'btn btn-sm';
+    if (href) {
+      el.href = href;
+      if (newTab) {
+        el.target = '_blank';
+        el.rel = 'noopener';
+      }
+    } else el.type = 'button';
+    el.innerHTML = `${icon}<span>${W.esc(label)}</span>`;
+    el.addEventListener('click', onClick);
+    practical.appendChild(el);
+    return el;
+  };
   const maps = W.mapsLinks();
-  const waze = $('#waze');
-  waze.href = maps.waze;
-  waze.innerHTML = `${I.waze}<span>Waze</span>`;
-  waze.addEventListener('click', () => api.track('nav', 'waze'));
-  const gm = $('#maps');
-  gm.href = maps.maps;
-  gm.innerHTML = `${I.pin}<span>Google Maps</span>`;
-  gm.addEventListener('click', () => api.track('nav', 'maps'));
-
+  action(maps.waze, I.waze, 'Waze', () => api.track('nav', 'waze'), true);
+  action(maps.maps, I.pin, 'Google Maps', () => api.track('nav', 'maps'), true);
   const cal = W.calendar();
   if (cal) {
-    const box = $('#calActions');
-    const g = document.createElement('a');
-    g.className = 'btn btn-sm';
-    g.href = cal.google;
-    g.target = '_blank';
-    g.rel = 'noopener';
-    g.innerHTML = `${I.calendar}<span>${W.esc(W.t('g.gcal'))}</span>`;
-    g.addEventListener('click', () => api.track('calendar', 'google'));
-    const ics = document.createElement('button');
-    ics.type = 'button';
-    ics.className = 'btn btn-sm';
-    ics.innerHTML = `${I.calendar}<span>${W.esc(W.t('g.ical'))}</span>`;
-    ics.addEventListener('click', () => {
+    action(cal.google, I.calendar, W.t('g.gcal'), () => api.track('calendar', 'google'), true);
+    action(null, I.calendar, W.t('g.ical'), () => {
       W.download('wedding.ics', cal.ics, 'text/calendar;charset=utf-8');
       api.track('calendar', 'ics');
     });
-    box.append(g, ics);
     const tc = $('#thanksCalendar');
     tc.href = cal.google;
     tc.innerHTML = `${I.calendar}<span>${W.esc(W.t('g.addCal'))}</span>`;
