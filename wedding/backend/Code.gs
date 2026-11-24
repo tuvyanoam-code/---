@@ -2,17 +2,16 @@
  * צד השרת של אתר החתונה — Google Apps Script שמחובר לגיליון Google Sheets.
  * כל אישור הגעה, כל צפייה וכל שיתוף נרשמים בגיליון, ולוח הניהול קורא משם.
  *
- * The wedding site's backend: a Google Apps Script bound to a Google Sheet. Every RSVP, visit and share is
- * written to the sheet, and the dashboard reads it from there. Setup: paste this file into Extensions → Apps
- * Script, set ADMIN_PASSWORD, run setup once, then Deploy → New deployment → Web app (Execute as: Me,
- * Who has access: Anyone) and put the /exec URL in config.js → backendUrl.
+ * The wedding site's backend: a Google Apps Script that writes every RSVP, visit and share to a Google Sheet,
+ * which the dashboard reads. Setup: open https://script.new, paste this file, set ADMIN_PASSWORD, run setup once
+ * (it creates the sheet), then Deploy → New deployment → Web app (Execute as: Me, Who has access: Anyone) and
+ * put the /exec URL in config.js → backendUrl. It also works pasted into a sheet's Extensions → Apps Script.
  *
  * התקנה (פעם אחת, כ-5 דקות) — ההוראות המלאות ב-README.md:
- *  1. צרו גיליון חדש ב-Google Sheets ← תוספים (Extensions) ← Apps Script.
- *  2. מחקו את מה שיש שם, הדביקו את כל הקובץ הזה, ושנו את הסיסמה כאן למטה.
- *  3. הריצו פעם אחת את הפונקציה setup (ואשרו הרשאות).
- *  4. פריסה (Deploy) ← פריסה חדשה ← Web app: Execute as "Me", Who has access "Anyone".
- *  5. העתיקו את כתובת ה-Web app (מסתיימת ב-/exec) לשדה backendUrl בקובץ config.js.
+ *  1. פתחו https://script.new, מחקו את מה שיש שם והדביקו את כל הקובץ הזה. שנו את הסיסמה כאן למטה.
+ *  2. הריצו פעם אחת את הפונקציה setup (ואשרו הרשאות). היא יוצרת את הגיליון בגוגל דרייב שלכם.
+ *  3. פריסה (Deploy) ← פריסה חדשה ← Web app: Execute as "Me", Who has access "Anyone".
+ *  4. העתיקו את כתובת ה-Web app (מסתיימת ב-/exec) לשדה backendUrl בקובץ config.js.
  */
 
 // סיסמה ללוח הניהול. שנו אותה לפני הפריסה! · Dashboard password — change it before deploying!
@@ -156,7 +155,7 @@ function admin(body) {
         rsvps: readAll('rsvps'),
         guests: readAll('guests'),
         events: readAll('events'),
-        sheetUrl: SpreadsheetApp.getActiveSpreadsheet().getUrl(),
+        sheetUrl: spreadsheet().getUrl(),
       };
     case 'saveGuests': {
       const list = (body.guests || []).slice(0, 2000);
@@ -215,14 +214,28 @@ function admin(body) {
 
 function setup() {
   Object.keys(SHEETS).forEach((key) => sheet(key));
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = spreadsheet();
   const def = ss.getSheetByName('Sheet1') || ss.getSheetByName('גיליון1') || ss.getSheetByName('גיליון 1');
   if (def && ss.getSheets().length > 1 && def.getLastRow() === 0) ss.deleteSheet(def);
-  return 'מוכן! עכשיו: פריסה ← פריסה חדשה ← Web app';
+  const msg = 'מוכן! הגיליון: ' + ss.getUrl() + '  ·  עכשיו: פריסה ← פריסה חדשה ← Web app';
+  console.log(msg);
+  return msg;
+}
+
+// The sheet this script is attached to; a script started from script.new creates its own sheet once.
+function spreadsheet() {
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SHEET_ID');
+  if (id) return SpreadsheetApp.openById(id);
+  const created = SpreadsheetApp.create('החתונה שלנו · Our wedding');
+  props.setProperty('SHEET_ID', created.getId());
+  return created;
 }
 
 function sheet(key) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = spreadsheet();
   const def = SHEETS[key];
   let sh = ss.getSheetByName(def.name);
   if (!sh) {

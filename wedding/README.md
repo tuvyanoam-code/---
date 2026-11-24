@@ -52,17 +52,16 @@
 
 ### 2. חיבור לגיליון Google Sheets (כ-5 דקות, פעם אחת)
 
-1. פתחו [גיליון חדש](https://sheets.new) ותנו לו שם, למשל "החתונה שלנו".
-2. בתפריט: **תוספים (Extensions) → Apps Script**.
-3. מחקו את הקוד שמופיע שם, והדביקו במקומו את כל התוכן של `backend/Code.gs`.
-4. בשורה `const ADMIN_PASSWORD = 'change-me';` החליפו את `change-me` בסיסמה שתבחרו ללוח הניהול. שמרו (Ctrl+S).
-5. למעלה בחרו את הפונקציה **setup** ולחצו **הפעלה (Run)**. Google תבקש אישור הרשאה: **Review permissions**, בוחרים את החשבון שלכם, ואז **Advanced → Go to … (unsafe) → Allow**. זה הקוד שלכם, והוא ניגש רק לגיליון הזה. בגיליון ייפתחו שלוש לשוניות: אישורי הגעה, מוזמנים ופעילות.
-6. **פריסה (Deploy) → פריסה חדשה (New deployment)**. ליד "Select type" לוחצים על גלגל השיניים ובוחרים **Web app**, ומגדירים:
+1. פתחו [script.new](https://script.new) (פרויקט Apps Script חדש בחשבון גוגל שלכם).
+2. מחקו את הקוד שמופיע שם, והדביקו במקומו את כל התוכן של [`backend/Code.gs`](backend/Code.gs) (בדף הקובץ ב-GitHub יש כפתור העתקה).
+3. בשורה `const ADMIN_PASSWORD = 'change-me';` החליפו את `change-me` בסיסמה שתבחרו ללוח הניהול. שמרו (Ctrl+S).
+4. למעלה בחרו את הפונקציה **setup** ולחצו **הפעלה (Run)**. Google תבקש אישור הרשאה: **Review permissions**, בוחרים את החשבון שלכם, ואז **Advanced → Go to … (unsafe) → Allow**. זה הקוד שלכם, והוא ניגש רק לגיליון שהוא יוצר. בגוגל דרייב שלכם נוצר הגיליון "החתונה שלנו", עם שלוש לשוניות: אישורי הגעה, מוזמנים ופעילות.
+5. **פריסה (Deploy) → פריסה חדשה (New deployment)**. ליד "Select type" לוחצים על גלגל השיניים ובוחרים **Web app**, ומגדירים:
    - Execute as: **Me**
    - Who has access: **Anyone**
 
    לוחצים **Deploy**.
-7. העתיקו את ה-**Web app URL** (הכתובת שמסתיימת ב-`/exec`) והדביקו אותה ב-`config.js`:
+6. העתיקו את ה-**Web app URL** (הכתובת שמסתיימת ב-`/exec`) והדביקו אותה ב-`config.js`:
    ```js
    backendUrl: 'https://script.google.com/macros/s/……/exec',
    ```
@@ -114,4 +113,4 @@ npx serve .                   # או כל שרת סטטי אחר
 
 A small, fast website (not an app to install) guests open from a link: they see the invitation, RSVP with the number of guests in two taps, and share it on WhatsApp, Telegram or SMS. Everything they do lands in your Google Sheet and in a password-protected dashboard (`admin.html`). Both the guest page and the dashboard are fully bilingual: the **EN / עב** button switches language and text direction, `en.html` is the English link (with an English WhatsApp preview), and each invited guest can be set to Hebrew or English so their personal link and message arrive in their language.
 
-Setup: edit `config.js` (every guest-facing text has `he` and `en`), replace `invitation.pdf`, paste `backend/Code.gs` into a Google Sheet's Apps Script (set `ADMIN_PASSWORD`, run `setup`, deploy as a Web app for "Anyone") and put the `/exec` URL in `backendUrl`. Then enable **Settings → Pages → Source: GitHub Actions** and merge to the default branch; the `Wedding site` workflow builds and publishes the site.
+Setup: edit `config.js` (every guest-facing text has `he` and `en`), replace `invitation.pdf`, paste `backend/Code.gs` into a new Apps Script project at https://script.new (set `ADMIN_PASSWORD`, run `setup` to create the sheet, deploy as a Web app for "Anyone") and put the `/exec` URL in `backendUrl`. Then enable **Settings → Pages → Source: GitHub Actions** and merge to the default branch; the `Wedding site` workflow builds and publishes the site.
