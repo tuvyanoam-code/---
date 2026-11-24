@@ -31,8 +31,11 @@ jobs:
         with:
           node-version: 22
 
+      # Without recommended extras this takes seconds; the package index is refreshed only when it has to be.
       - name: Install PDF tools
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils imagemagick
+        run: |
+          pkgs="poppler-utils imagemagick"
+          sudo apt-get install -y -qq --no-install-recommends $pkgs || { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends $pkgs; }
 
       - id: pages
         uses: actions/configure-pages@v5
@@ -47,7 +50,7 @@ jobs:
           rsync -a --exclude tools --exclude backend --exclude README.md wedding/ _site/
           touch _site/.nojekyll
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
