@@ -17,13 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -48,11 +45,19 @@ jobs:
         run: |
           mkdir -p _site
           rsync -a --exclude tools --exclude backend --exclude README.md wedding/ _site/
-          touch _site/.nojekyll
 
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
+  # A separate job, as in GitHub's own Pages template: the uploaded site is only listed once its job has finished.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
