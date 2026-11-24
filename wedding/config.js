@@ -7,40 +7,44 @@ window.WEDDING = {
   // השפה שבה האתר נפתח כברירת מחדל: 'he' או 'en'. האורחים יכולים להחליף בכפתור למעלה.
   defaultLang: 'he',
 
-  // השמות כפי שיופיעו בראש העמוד ובהודעות השיתוף
-  couple: { he: ['נועה', 'איתי'], en: ['Noa', 'Itai'] },
+  // שמות החתן והכלה, כפי שיופיעו בראש העמוד ובהודעות
+  couple: { he: ['טוביה נעם', 'שפרה'], en: ['Tuvya Noam', 'Shifra'] },
 
-  // תאריך ושעת קבלת הפנים (שעון ישראל), בפורמט YYYY-MM-DDTHH:MM
-  date: '2027-06-17T19:30',
+  // תאריך ושעת קבלת הפנים (שעון ישראל), בפורמט YYYY-MM-DDTHH:MM — משמש לספירה לאחור וליומן
+  date: '2026-12-29T18:00',
 
-  // התאריך העברי מחושב אוטומטית. אפשר לכתוב נוסח משלכם, למשל: { he: 'י״א בסיוון תשפ״ז', en: '11 Sivan 5787' }
-  hebrewDate: '',
+  // התאריך כפי שהוא כתוב בהזמנה
+  dateLine: { he: 'יום שלישי, י״ט טבת ה׳תשפ״ז', en: 'Tuesday, December 29, 2026' },
+  dateSub: { he: 'אור לכ׳ טבת · 29 בדצמבר 2026', en: '19th of Tevet 5787' },
+  // התאריך בתוך הודעות השיתוף
+  dateText: { he: 'ביום שלישי, י״ט טבת ה׳תשפ״ז', en: 'on Tuesday, the 19th of Tevet, December 29, 2026' },
 
   // סדר הערב (אפשר למחוק או להוסיף שורות)
   schedule: [
-    { time: '19:30', label: { he: 'קבלת פנים', en: 'Reception' } },
-    { time: '20:30', label: { he: 'חופה וקידושין', en: 'Ceremony' } },
+    { time: '18:00', label: { he: 'קבלת פנים', en: 'Kabbalat Panim' } },
+    { time: '19:00', label: { he: 'חופה', en: 'Chuppah' } },
   ],
 
   venue: {
-    name: { he: 'גן האירועים', en: 'The Garden Venue' },
-    address: { he: 'רחוב הדוגמה 1, תל אביב', en: '1 Example St, Tel Aviv' },
-    // לא חובה: קישורים מדויקים. אם ריק — מחפשים לפי הכתובת.
+    name: { he: 'גן האירועים ׳אלה׳', en: 'Ela Events' },
+    address: { he: 'רחוב האלופים 1, נס ציונה', en: "HaAlufim 1, Nes Tziona" },
+    // לא חובה: קישורים מדויקים. אם ריק — מחפשים לפי השם והכתובת.
     waze: '',
     maps: '',
   },
 
   // אישור הגעה
   rsvp: {
-    deadline: '2027-06-01',      // עד מתי מבקשים לאשר (ריק = בלי תאריך)
-    maxGuests: 10,               // מקסימום אורחים באישור אחד
+    deadline: '',                // עד מתי מבקשים לאשר, למשל '2026-12-15' (ריק = בלי תאריך)
+    maxGuests: 10,               // מקסימום משתתפים באישור אחד
     askPhone: true,              // לבקש מספר טלפון
     askNote: true,               // לאפשר לכתוב ברכה או הערה
   },
 
   // קובץ ההזמנה. מחליפים את invitation.pdf בתיקייה הזו — וזהו.
-  // יש לכם גם הזמנה באנגלית? שימו אותה כאן (למשל 'invitation-en.pdf'). ריק = האורחים באנגלית יראו את אותה הזמנה.
   invitationPdf: { he: 'invitation.pdf', en: '' },
+  // סדר העמודים שמוצג לכל שפה (העמוד הראשון הוא גם התמונה בתצוגה המקדימה בוואטסאפ)
+  pageOrder: { he: [1, 2, 3, 4], en: [4, 1, 2, 3] },
 
   // הכתובת שבה האתר מתפרסם (משמשת לקישורי השיתוף ולתצוגה המקדימה בוואטסאפ)
   siteUrl: 'https://tuvyanoam-code.github.io/---/',
@@ -51,17 +55,17 @@ window.WEDDING = {
 
   // נוסח הודעות השיתוף. {couple} = השמות, {link} = הקישור, {name} = שם המוזמן, {date} = התאריך
   shareText: {
-    he: 'הוזמנתם לחתונה של {couple}! 🤍\n{date}\nההזמנה ואישור הגעה בלחיצה:\n{link}',
-    en: "You're invited to the wedding of {couple}! 🤍\n{date}\nInvitation & RSVP:\n{link}",
+    he: 'בעזהי״ת\nבשמחה ובהודיה לה׳ יתברך, הנכם מוזמנים לשמחת נישואי {couple}, שתתקיים אי״ה {date}, בשעה טובה ומוצלחת.\nלעיון בהזמנה ולאישור השתתפות:\n{link}',
+    en: 'B"H\nWith immense gratitude to Hashem, you are warmly invited to the wedding of {couple}, {date}.\nTo view the invitation and RSVP:\n{link}',
   },
   personalShareText: {
-    he: 'היי {name}! 🤍\nנשמח מאוד לראות אתכם בחתונה שלנו, {date}.\nההזמנה ואישור הגעה כאן:\n{link}\n{couple}',
-    en: "Hi {name}! 🤍\nWe'd love to see you at our wedding, {date}.\nInvitation & RSVP:\n{link}\n{couple}",
+    he: 'בעזהי״ת\nלכבוד {name},\nבשמחה ובהודיה לה׳ יתברך, נתכבד בהשתתפותכם בשמחת נישואי {couple}, שתתקיים אי״ה {date}, בשעה טובה ומוצלחת.\nלעיון בהזמנה ולאישור השתתפות:\n{link}',
+    en: 'B"H\nDear {name},\nWith immense gratitude to Hashem, we would be honored by your presence at the wedding of {couple}, {date}.\nTo view the invitation and RSVP:\n{link}',
   },
 
   // קידומת מדינה לטלפונים שנרשמים בלי קידומת (050… → 97250…)
   countryCode: '972',
 
-  // הצדדים ברשימת המוזמנים. ריק = השמות שלכם + 'משותף'. למשל: { he: ['חתן', 'כלה', 'משותף'], en: ['Groom', 'Bride', 'Both'] }
-  sides: { he: [], en: [] },
+  // הצדדים ברשימת המוזמנים
+  sides: { he: ['צד החתן', 'צד הכלה', 'משותף'], en: ["Groom's side", "Bride's side", 'Both'] },
 };

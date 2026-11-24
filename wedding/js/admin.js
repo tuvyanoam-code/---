@@ -611,12 +611,12 @@
 
   /* =========================================================== guests */
 
-  const eventDateText = (lang) => (W.eventDate ? W.fmtDate(W.eventDate, { weekday: 'long', day: 'numeric', month: 'long' }, lang) : '');
+  const eventDateText = (lang) => W.dateText(lang);
   const guestLang = (g) => (g.lang === 'en' ? 'en' : 'he');
   const personalLink = (g, src) => W.link({ g: g.id, src }, guestLang(g));
   const personalText = (g, link) => {
     const l = guestLang(g);
-    return W.fill(W.L(cfg.personalShareText, l) || W.L(cfg.shareText, l), { name: g.name, link, couple: W.couple(l).join(' & '), date: eventDateText(l) });
+    return W.fill(W.L(cfg.personalShareText, l) || W.L(cfg.shareText, l), { name: g.name, link, couple: W.coupleTextFor(l), date: eventDateText(l) });
   };
 
   function sideOptions(withAll) {
@@ -967,7 +967,7 @@
   function fillShare(src) {
     const l = ui.shareLang;
     const link = W.link({ src }, l);
-    return { link, text: W.fill($('#shareMsg').value, { couple: W.couple(l).join(' & '), link, date: eventDateText(l), name: '' }) };
+    return { link, text: W.fill($('#shareMsg').value, { couple: W.coupleTextFor(l), link, date: eventDateText(l), name: '' }) };
   }
 
   function renderShare() {
@@ -999,9 +999,9 @@
     const IP = window.INVITATION_PAGES || {};
     const set = (IP[l] && IP[l].og ? IP[l] : IP.he) || {};
     $('#ogImg').src = set.og || 'invitation/og.jpg';
-    $('#ogTitle').textContent = t('g.ogTitle', { couple: W.couple(l).join(' & ') }, l);
+    $('#ogTitle').textContent = t('g.ogTitle', { couple: W.coupleTextFor(l) }, l);
     const venue = W.L((cfg.venue || {}).name, l);
-    $('#ogDesc').textContent = [W.eventDate ? W.longDate(W.eventDate, l) : '', venue].filter(Boolean).join(' · ');
+    $('#ogDesc').textContent = [W.L(cfg.dateLine, l) || (W.eventDate ? W.longDate(W.eventDate, l) : ''), venue].filter(Boolean).join(' · ');
     try {
       $('#ogHost').textContent = new URL(W.siteUrl).host;
     } catch (e) {}

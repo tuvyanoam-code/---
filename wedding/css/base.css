@@ -1,41 +1,48 @@
 /* Tokens, reset and shared components for both pages. */
 :root {
   color-scheme: light;
-  --paper: #fff8f0;
-  --paper-2: #fdf0e3;
-  --card: #fffdf9;
-  --ink: #221f36;
-  --ink-2: #5b5770;
-  --muted: #716d86;
-  --line: #efe4d6;
-  --line-2: #e4d6c4;
+  /* Soft and refined: warm parchment, bordeaux ink, olive, soft gold */
+  --paper: #f8eedf;
+  --paper-2: #f1e3cd;
+  --card: #fffaf2;
+  --ink: #4a2629;
+  --ink-2: #6d4a48;
+  --muted: #7d6058;
+  --line: #ecdcc4;
+  --line-2: #dfc9aa;
 
-  --berry: #d6336c;        /* primary action, text-safe on white (4.6:1) */
-  --berry-ink: #b0244f;
-  --berry-soft: #fde7ef;
-  --sun: #ffc23d;
-  --sun-soft: #fff1cc;
-  --mint: #2fbf9b;
-  --mint-soft: #dcf5ec;
-  --sky: #5b8def;
-  --sky-soft: #e3ecfd;
-  --lilac: #a78bfa;
-  --lilac-soft: #efe9fe;
+  --berry: #7a2e38;        /* bordeaux: primary action, 9:1 with white */
+  --berry-ink: #5f222b;
+  --berry-soft: #f3e2dc;
+  --sun: #c39a4e;          /* soft gold */
+  --sun-soft: #f5e9cf;
+  --mint: #7d8f5f;         /* olive / sage */
+  --mint-soft: #e7ebd9;
+  --sky: #8ea4b8;
+  --sky-soft: #e4eaef;
+  --lilac: #b78b8b;        /* dusty rose */
+  --lilac-soft: #f3e3df;
 
-  --ok-ink: #0f7a55;
-  --no-ink: #a3305d;
-  --maybe-ink: #8a5a00;
+  --ok-ink: #56693a;
+  --no-ink: #8a3b46;
+  --maybe-ink: #7d5a1c;
 
-  --radius: 22px;
-  --radius-sm: 14px;
-  --shadow: 0 1px 0 rgba(34, 31, 54, 0.04), 0 10px 30px -12px rgba(34, 31, 54, 0.18);
-  --shadow-lg: 0 2px 0 rgba(34, 31, 54, 0.04), 0 24px 60px -20px rgba(34, 31, 54, 0.35);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 0 rgba(74, 38, 41, 0.04), 0 10px 30px -14px rgba(74, 38, 41, 0.22);
+  --shadow-lg: 0 2px 0 rgba(74, 38, 41, 0.04), 0 26px 60px -22px rgba(74, 38, 41, 0.38);
   --focus: 0 0 0 3px #fff, 0 0 0 5px var(--berry);
 
-  --font: 'Rubik', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
-  --font-display: 'Suez One', 'Rubik', serif;
-  --font-hand: 'Fredoka', 'Rubik', sans-serif;
+  --font: 'Assistant', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --font-serif: 'Frank Ruhl Libre', 'Cormorant Infant', Georgia, serif;
+  --font-display: 'Bellefair', 'Frank Ruhl Libre', Georgia, serif;
+  --font-hand: var(--font-serif);
   --safe-b: env(safe-area-inset-bottom, 0px);
+}
+/* English: a classic serif in the same spirit */
+html[lang='en'] {
+  --font-serif: 'Cormorant Infant', Georgia, serif;
+  --font-display: 'Cormorant Infant', Georgia, serif;
 }
 
 *,

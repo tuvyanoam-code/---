@@ -36,8 +36,9 @@
   $('#sign').textContent = W.coupleText;
   const d = W.eventDate;
   if (d) {
-    $('#date').textContent = `${W.longDate(d)} · ${W.timeOf(d)}`;
-    $('#hdate').textContent = W.hebrewDate(d);
+    // The date as written in the invitation when given, otherwise computed.
+    $('#date').textContent = W.L(cfg.dateLine) || `${W.longDate(d)} · ${W.fmtTime(W.timeOf(d))}`;
+    $('#hdate').textContent = W.L(cfg.dateSub) || W.hebrewDate(d);
     const left = W.daysUntil(d);
     const cd = $('#countdown');
     if (left > 1) {
@@ -51,6 +52,9 @@
       cd.hidden = false;
     }
   }
+
+  const venue = cfg.venue || {};
+  $('#venueLine').textContent = [W.L(venue.name), W.L(venue.address).split(',').pop().trim()].filter(Boolean).join(', ');
 
   if (guestId) {
     api.guest(guestId).then((g) => {
@@ -89,6 +93,7 @@
   $('#vZoomOut').innerHTML = I.zoomOut;
   $('#vShare').innerHTML = I.share;
 
+  if (pages.length > 1) $('#pagesCount').textContent = W.t('g.pages', { n: pages.length });
   if (pages.length) {
     const p = pages[0];
     preview.width = p.w;
@@ -254,7 +259,7 @@
   function setCount(n, animate) {
     count = Math.max(1, Math.min(rsvpCfg.maxGuests || 10, n));
     countEl.textContent = count;
-    $('#countWords').textContent = count === 1 ? W.t('g.justMe') : W.t('g.mePlus', { n: count - 1 });
+    $('#countWords').textContent = count === 1 ? W.t('g.justMe') : W.t('g.mePlus', { n: count });
     form.querySelector('[data-step="-1"]').disabled = count <= 1;
     form.querySelector('[data-step="1"]').disabled = count >= (rsvpCfg.maxGuests || 10);
     if (animate) {
@@ -388,12 +393,15 @@
   } else syncStatus();
 
   /* ---------- where & when ---------- */
-  if (d) $('#dDate').textContent = W.longDate(d);
+  if (d) {
+    $('#dDate').textContent = W.L(cfg.dateLine) || W.longDate(d);
+    $('#dDateSub').textContent = W.L(cfg.dateSub) || W.hebrewDate(d);
+  }
   const sched = $('#schedule');
   (cfg.schedule || []).forEach((s) => {
     const li = document.createElement('li');
     const t = document.createElement('time');
-    t.textContent = s.time;
+    t.textContent = W.fmtTime(s.time);
     const span = document.createElement('span');
     span.textContent = W.L(s.label);
     li.append(t, span);
@@ -440,7 +448,7 @@
   } else $('#thanksCalendar').hidden = true;
 
   /* ---------- share ---------- */
-  const dateText = d ? `${W.fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}` : '';
+  const dateText = W.dateText();
   function shareText(link) {
     return W.fill(W.L(cfg.shareText), { couple: W.coupleText, link, date: dateText, name: '' });
   }
@@ -503,42 +511,41 @@
     c.width = innerWidth * dpr;
     c.height = innerHeight * dpr;
     ctx.scale(dpr, dpr);
-    const colors = ['#d6336c', '#ffc23d', '#2fbf9b', '#5b8def', '#a78bfa', '#ff8a65'];
-    const parts = Array.from({ length: 170 }, (_, i) => ({
-      x: innerWidth / 2 + (Math.random() - 0.5) * 80,
-      y: innerHeight * 0.55,
-      vx: (Math.random() - 0.5) * 16,
-      vy: -10 - Math.random() * 12,
-      w: 6 + Math.random() * 7,
-      h: 8 + Math.random() * 10,
+    // Soft petals drifting down: gold, olive, dusty rose and cream
+    const colors = ['#c39a4e', '#7d8f5f', '#b78b8b', '#e6cfa3', '#d9b8ae'];
+    const parts = Array.from({ length: 70 }, (_, i) => ({
+      x: Math.random() * innerWidth,
+      y: -20 - Math.random() * innerHeight * 0.5,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: 1.2 + Math.random() * 1.6,
+      w: 7 + Math.random() * 6,
+      h: 3.5 + Math.random() * 2.5,
       r: Math.random() * Math.PI,
-      vr: (Math.random() - 0.5) * 0.4,
+      vr: (Math.random() - 0.5) * 0.06,
+      sway: Math.random() * Math.PI * 2,
       color: colors[i % colors.length],
-      round: Math.random() < 0.3,
+      round: false,
     }));
     const start = performance.now();
     function frame(now) {
       const t = now - start;
       ctx.clearRect(0, 0, innerWidth, innerHeight);
       parts.forEach((p) => {
-        p.vy += 0.38;
-        p.vx *= 0.985;
-        p.x += p.vx;
+        p.sway += 0.03;
+        p.x += p.vx + Math.sin(p.sway) * 0.6;
         p.y += p.vy;
         p.r += p.vr;
         ctx.save();
-        ctx.globalAlpha = Math.max(0, 1 - t / 3200);
+        ctx.globalAlpha = 0.85 * Math.max(0, Math.min(1, (4200 - t) / 900));
         ctx.translate(p.x, p.y);
         ctx.rotate(p.r);
         ctx.fillStyle = p.color;
-        if (p.round) {
-          ctx.beginPath();
-          ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2)) + 2);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
       });
-      if (t < 3200) requestAnimationFrame(frame);
+      if (t < 4200) requestAnimationFrame(frame);
       else ctx.clearRect(0, 0, innerWidth, innerHeight);
     }
     requestAnimationFrame(frame);

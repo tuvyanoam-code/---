@@ -10,7 +10,7 @@
   // The inline script in <head> already picked the language (?lang=, saved choice, page default) and set lang/dir.
   C.lang = document.documentElement.lang === 'en' ? 'en' : 'he';
   C.rtl = C.lang === 'he';
-  C.locale = C.lang === 'en' ? 'en-GB' : 'he-IL';
+  C.locale = C.lang === 'en' ? 'en-US' : 'he-IL';
   const dict = (window.I18N || {})[C.lang] || {};
   const dictHe = (window.I18N || {}).he || {};
 
@@ -34,7 +34,12 @@
   };
 
   C.couple = (lang) => C.L(cfg.couple, lang) || [];
-  C.coupleText = C.couple().join(' & ');
+  // "טוביה נעם ושפרה" / "Tuvya Noam & Shifra"
+  C.coupleTextFor = (lang) => {
+    const names = C.couple(lang);
+    return (lang || C.lang) === 'en' ? names.join(' & ') : names.length > 1 ? names.slice(0, -1).join(', ') + ' ו' + names[names.length - 1] : names.join('');
+  };
+  C.coupleText = C.coupleTextFor();
 
   // Sides are stored in their Hebrew form (stable in the sheet) and shown in the current language.
   const sidesFor = (lang) => {
@@ -94,7 +99,16 @@
   };
   C.eventDate = C.parseLocal(cfg.date);
 
-  C.fmtDate = (d, opts, lang) => new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : lang === 'he' ? 'he-IL' : C.locale, opts).format(d);
+  C.fmtDate = (d, opts, lang) => new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : lang === 'he' ? 'he-IL' : C.locale, opts).format(d);
+  // "18:00" → "18:00" in Hebrew, "6:00 PM" in English
+  C.fmtTime = (hhmm, lang) => {
+    const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!m || (lang || C.lang) !== 'en') return hhmm || '';
+    const h = +m[1];
+    return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+  };
+  // The wedding date as written in messages ("ביום שלישי, י״ט טבת ה׳תשפ״ז")
+  C.dateText = (lang) => C.L(cfg.dateText, lang) || (C.eventDate ? C.fmtDate(C.eventDate, { weekday: 'long', day: 'numeric', month: 'long' }, lang) : '');
   C.longDate = (d, lang) => C.fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, lang);
   C.shortDate = (d) => C.fmtDate(d, { day: 'numeric', month: 'numeric', year: 'numeric' });
   C.timeOf = (d) => C.fmtDate(d, { hour: '2-digit', minute: '2-digit', hour12: false });

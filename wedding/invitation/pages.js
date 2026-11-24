@@ -5,13 +5,61 @@ window.INVITATION_PAGES = {
     "pages": [
       {
         "w": 900,
-        "h": 1275,
-        "src": "invitation/page-1.jpg?v=2db2b35276",
-        "src2x": "invitation/page-1@2x.jpg?v=2db2b35276"
+        "h": 1201,
+        "src": "invitation/page-1.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-1@2x.jpg?v=2067aab7a6"
+      },
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-2.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-2@2x.jpg?v=2067aab7a6"
+      },
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-3.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-3@2x.jpg?v=2067aab7a6"
+      },
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-4.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-4@2x.jpg?v=2067aab7a6"
       }
     ],
-    "v": "2db2b35276",
-    "og": "invitation/og.jpg?v=2db2b35276"
+    "v": "2067aab7a6",
+    "og": "invitation/og.jpg?v=2067aab7a6"
   },
-  "en": null
+  "en": {
+    "pdf": "invitation.pdf",
+    "pages": [
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-4.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-4@2x.jpg?v=2067aab7a6"
+      },
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-1.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-1@2x.jpg?v=2067aab7a6"
+      },
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-2.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-2@2x.jpg?v=2067aab7a6"
+      },
+      {
+        "w": 900,
+        "h": 1201,
+        "src": "invitation/page-3.jpg?v=2067aab7a6",
+        "src2x": "invitation/page-3@2x.jpg?v=2067aab7a6"
+      }
+    ],
+    "v": "2067aab7a6",
+    "og": "invitation/og-en.jpg?v=2067aab7a6"
+  }
 };
